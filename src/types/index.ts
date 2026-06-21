@@ -12,7 +12,7 @@ export interface FilmTerms {
   specificDays?: number[]; // 0=Fri … 6=Thu
 }
 
-export type ScreeningType = 'film-club' | 'cine-circle' | 'toddlervision' | 'penguins';
+export type ScreeningType = 'film-club' | 'cine-circle' | 'toddlervision' | 'penguins' | 'senior';
 
 export interface SpecialScreening {
   type: ScreeningType;

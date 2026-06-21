@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, ChevronDown, ChevronUp, Star, X, GripVertical } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronUp, X, GripVertical } from 'lucide-react';
 import { useStore } from '../../store';
 import { IMG_BASE } from '../../utils/tmdb';
 import { SCREENING_TYPES } from '../../utils/screeningTypes';
@@ -15,7 +15,6 @@ interface Props {
 export function FilmCard({ film }: Props) {
   const removeFilm = useStore((s) => s.removeFilm);
   const updateFilmTerms = useStore((s) => s.updateFilmTerms);
-  const toggleSeniorFilm = useStore((s) => s.toggleSeniorFilm);
   const setSpecialScreening = useStore((s) => s.setSpecialScreening);
   const [expanded, setExpanded] = useState(false);
 
@@ -38,6 +37,9 @@ export function FilmCard({ film }: Props) {
   const selectScreeningType = (type: ScreeningType) => {
     if (ss?.type === type) {
       setSpecialScreening(film.id, undefined);
+    } else if (type === 'senior') {
+      // Senior screening defaults: Thursday (6), 10:30 AM (630 min), Screen 2
+      setSpecialScreening(film.id, { type: 'senior', day: 6, time: 630, screen: 2 });
     } else {
       setSpecialScreening(film.id, { type, day: ss?.day ?? 3, time: ss?.time, screen: ss?.screen });
     }
@@ -120,15 +122,6 @@ export function FilmCard({ film }: Props) {
           </div>
         </div>
         <div className="flex flex-col gap-1 flex-shrink-0">
-          <button
-            onClick={() => toggleSeniorFilm(film.id)}
-            title="Senior screening (Thu 10:30)"
-            className={`p-1 rounded transition-colors ${
-              film.isSeniorFilm ? 'text-yellow-400 bg-yellow-400/20' : 'text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            <Star size={12} />
-          </button>
           <button onClick={() => setExpanded((e) => !e)} className="p-1 text-gray-400 hover:text-white transition-colors">
             {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
@@ -283,19 +276,6 @@ export function FilmCard({ film }: Props) {
             )}
           </div>
 
-          {/* Senior screening */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id={`senior-${film.id}`}
-              checked={film.isSeniorFilm}
-              onChange={() => toggleSeniorFilm(film.id)}
-              className="accent-yellow-400"
-            />
-            <label htmlFor={`senior-${film.id}`} className="text-xs text-gray-300">
-              Senior screening (Thu 10:30, Screen 2)
-            </label>
-          </div>
         </div>
       )}
     </div>
