@@ -8,6 +8,7 @@ interface Props {
   date: string;
   zoom: number;
   timelineStart: number;
+  onShowClick: (showId: string) => void;
 }
 
 const SCREEN_LABELS: Record<ScreenNumber, string> = {
@@ -16,7 +17,7 @@ const SCREEN_LABELS: Record<ScreenNumber, string> = {
   3: 'Screen 3',
 };
 
-export function ScreenTrack({ screen, date, zoom, timelineStart }: Props) {
+export function ScreenTrack({ screen, date, zoom, timelineStart, onShowClick }: Props) {
   const allShows = useStore((s) => s.shows);
   const films = useStore((s) => s.films);
   const moveShow = useStore((s) => s.moveShow);
@@ -133,6 +134,7 @@ export function ScreenTrack({ screen, date, zoom, timelineStart }: Props) {
               film={film}
               zoom={zoom}
               timelineStart={timelineStart}
+              onShowClick={onShowClick}
             />
           );
         })}

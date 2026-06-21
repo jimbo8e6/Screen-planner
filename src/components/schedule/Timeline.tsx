@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { format, addDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
+import { ShowDetailModal } from './ShowDetailModal';
 
 const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
@@ -22,6 +23,7 @@ export function Timeline() {
   const shows = useStore((s) => s.shows);
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [detailShowId, setDetailShowId] = useState<string | null>(null);
 
   const currentDate = format(
     addDays(new Date(weekStart), selectedDay),
@@ -133,10 +135,18 @@ export function Timeline() {
               date={currentDate}
               zoom={zoom}
               timelineStart={TIMELINE_START}
+              onShowClick={setDetailShowId}
             />
           ))}
         </div>
       </div>
+
+      {detailShowId && (
+        <ShowDetailModal
+          showId={detailShowId}
+          onClose={() => setDetailShowId(null)}
+        />
+      )}
     </div>
   );
 }

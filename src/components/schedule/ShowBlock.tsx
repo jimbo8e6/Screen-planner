@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { X, Lock } from 'lucide-react';
 import { useStore } from '../../store';
 import { minutesToTimeString, showDurationMinutes } from '../../utils/time';
@@ -11,12 +11,14 @@ interface Props {
   film: Film;
   zoom: number;
   timelineStart: number;
+  onShowClick: (showId: string) => void;
 }
 
-export function ShowBlock({ show, film, zoom, timelineStart }: Props) {
+export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Props) {
   const removeShow = useStore((s) => s.removeShow);
   const [hovered, setHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const didDragRef = React.useRef(false);
 
   const showDur = showDurationMinutes(film.runtime);
   const left = (show.startMinute - timelineStart) * zoom;
@@ -31,10 +33,20 @@ export function ShowBlock({ show, film, zoom, timelineStart }: Props) {
     e.dataTransfer.setData('showId', show.id);
     e.dataTransfer.setData('offsetMinutes', String(offsetMinutes));
     e.dataTransfer.effectAllowed = 'move';
+    didDragRef.current = true;
     setIsDragging(true);
   };
 
-  const handleDragEnd = () => setIsDragging(false);
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    // Reset flag after the click event that may follow dragend
+    setTimeout(() => { didDragRef.current = false; }, 0);
+  };
+
+  const handleClick = () => {
+    if (didDragRef.current) return;
+    onShowClick(show.id);
+  };
 
   return (
     <div
@@ -53,6 +65,7 @@ export function ShowBlock({ show, film, zoom, timelineStart }: Props) {
       onMouseLeave={() => setHovered(false)}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onClick={handleClick}
     >
       {/* Trailer buffer indicator */}
       <div
