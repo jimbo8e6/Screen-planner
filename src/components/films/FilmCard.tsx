@@ -4,6 +4,7 @@ import { useStore } from '../../store';
 import { IMG_BASE } from '../../utils/tmdb';
 import { SCREENING_TYPES } from '../../utils/screeningTypes';
 import { minutesToTimeString, timeStringToMinutes } from '../../utils/time';
+import { useDragContext } from '../../contexts/DragContext';
 import type { Film, FilmTermType, FilmTerms, ScreeningType, ScreenNumber } from '../../types';
 
 const DAYS = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
@@ -16,6 +17,7 @@ export function FilmCard({ film }: Props) {
   const removeFilm = useStore((s) => s.removeFilm);
   const updateFilmTerms = useStore((s) => s.updateFilmTerms);
   const setSpecialScreening = useStore((s) => s.setSpecialScreening);
+  const { startDrag } = useDragContext();
   const [expanded, setExpanded] = useState(false);
 
   const ss = film.specialScreening;
@@ -77,12 +79,12 @@ export function FilmCard({ film }: Props) {
       <div className="flex items-center gap-2 p-2" style={{ backgroundColor: film.color + '22' }}>
         {/* Drag handle — drag this film onto the timeline */}
         <div
-          draggable
-          onDragStart={(e) => {
-            e.dataTransfer.setData('filmId', film.id);
-            e.dataTransfer.effectAllowed = 'copy';
+          onPointerDown={(e) => {
+            e.preventDefault();
+            startDrag({ type: 'film', filmId: film.id }, e.clientX, e.clientY, film.title, film.color);
           }}
           className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 transition-colors"
+          style={{ touchAction: 'none' }}
           title="Drag onto timeline to place a show"
         >
           <GripVertical size={14} />

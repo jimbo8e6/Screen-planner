@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Lock } from 'lucide-react';
 import { useStore } from '../../store';
 import { minutesToTimeString, showDurationMinutes } from '../../utils/time';
 import type { Show, Film } from '../../types';
 import { hexToRgba } from '../../utils/colors';
 import { SCREENING_TYPES } from '../../utils/screeningTypes';
+import { useDragContext } from '../../contexts/DragContext';
 
 interface Props {
   show: Show;
@@ -17,55 +18,69 @@ interface Props {
 export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Props) {
   const removeShow = useStore((s) => s.removeShow);
   const [hovered, setHovered] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const didDragRef = React.useRef(false);
+  const { startDrag } = useDragContext();
 
   const showDur = showDurationMinutes(film.runtime);
   const left = (show.startMinute - timelineStart) * zoom;
   const width = showDur * zoom;
   const endMinute = show.startMinute + showDur;
 
-  const draggable = !show.isSenior;
+  const canDrag = !show.isSenior;
 
-  const handleDragStart = (e: React.DragEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetMinutes = Math.round((e.clientX - rect.left) / zoom);
-    e.dataTransfer.setData('showId', show.id);
-    e.dataTransfer.setData('offsetMinutes', String(offsetMinutes));
-    e.dataTransfer.effectAllowed = 'move';
-    didDragRef.current = true;
-    setIsDragging(true);
+  const pointerRef = useRef<{ x: number; y: number; id: number; dragging: boolean } | null>(null);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!canDrag) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.stopPropagation();
+    pointerRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, dragging: false };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    // Reset flag after the click event that may follow dragend
-    setTimeout(() => { didDragRef.current = false; }, 0);
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!pointerRef.current || pointerRef.current.dragging) return;
+    const dx = e.clientX - pointerRef.current.x;
+    const dy = e.clientY - pointerRef.current.y;
+    if (Math.sqrt(dx * dx + dy * dy) > 6) {
+      pointerRef.current.dragging = true;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const offsetMinutes = Math.round((pointerRef.current.x - rect.left) / zoom);
+      (e.currentTarget as HTMLElement).releasePointerCapture(pointerRef.current.id);
+      startDrag(
+        { type: 'show', showId: show.id, offsetMinutes },
+        e.clientX, e.clientY,
+        film.title, film.color
+      );
+    }
   };
 
-  const handleClick = () => {
-    if (didDragRef.current) return;
-    onShowClick(show.id);
+  const handlePointerUp = (_e: React.PointerEvent) => {
+    if (!pointerRef.current) return;
+    const wasDragging = pointerRef.current.dragging;
+    pointerRef.current = null;
+    if (!wasDragging) {
+      onShowClick(show.id);
+    }
   };
 
   return (
     <div
-      draggable={draggable}
-      className="absolute top-1 bottom-1 rounded select-none overflow-hidden transition-opacity"
+      className="absolute top-1 bottom-1 rounded select-none overflow-hidden"
       style={{
         left,
         width: Math.max(width, 24),
         backgroundColor: hexToRgba(film.color, show.isSenior ? 0.9 : 0.75),
         borderLeft: `3px solid ${film.color}`,
-        cursor: draggable ? (isDragging ? 'grabbing' : 'grab') : 'default',
+        cursor: canDrag ? 'grab' : 'default',
         zIndex: hovered ? 10 : 1,
-        opacity: isDragging ? 0.4 : 1,
+        touchAction: 'none',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onClick={handleClick}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {/* Trailer buffer indicator */}
       <div
@@ -99,7 +114,7 @@ export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Prop
           {hovered && (
             <button
               className="flex-shrink-0 text-white/60 hover:text-white transition-colors"
-              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 removeShow(show.id);
