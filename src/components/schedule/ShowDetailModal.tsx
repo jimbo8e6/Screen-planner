@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Monitor } from 'lucide-react';
+import { X, Monitor, Trash2 } from 'lucide-react';
 import { useStore } from '../../store';
 import { minutesToTimeString, timeStringToMinutes, showDurationMinutes } from '../../utils/time';
 import { SCREENING_TYPES } from '../../utils/screeningTypes';
@@ -22,6 +22,7 @@ export function ShowDetailModal({ showId, onClose }: Props) {
   const shows = useStore((s) => s.shows);
   const films = useStore((s) => s.films);
   const moveShow = useStore((s) => s.moveShow);
+  const removeShow = useStore((s) => s.removeShow);
 
   const show = shows.find((s) => s.id === showId);
   const film = show ? films.find((f) => f.id === show.filmId) : null;
@@ -158,6 +159,17 @@ export function ShowDetailModal({ showId, onClose }: Props) {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Delete */}
+        <div className="px-4 py-3 border-t border-gray-800">
+          <button
+            onClick={() => { removeShow(show.id); onClose(); }}
+            className="w-full flex items-center justify-center gap-2 bg-red-900/40 hover:bg-red-800/60 text-red-400 hover:text-red-300 text-sm rounded-lg py-2 transition-colors"
+          >
+            <Trash2 size={14} />
+            Remove this showing
+          </button>
         </div>
       </div>
     </div>
