@@ -102,6 +102,7 @@ export function FilmCard({ film }: Props) {
           <p className="text-white text-xs font-semibold leading-tight truncate">{film.title}</p>
           <p className="text-gray-400 text-xs">{film.year} · {film.runtime} min</p>
           <div className="flex flex-wrap gap-1 mt-0.5">
+            {!ss && (
             <span
               className="inline-block px-1.5 py-0.5 rounded text-xs font-medium"
               style={{ backgroundColor: film.color, color: '#fff' }}
@@ -111,6 +112,7 @@ export function FilmCard({ film }: Props) {
               {film.terms.type === 'last-house' && 'Last house'}
               {film.terms.type === 'specific-days' && 'Specific days'}
             </span>
+            )}
             {ss && (
               <span
                 className="inline-block px-1.5 py-0.5 rounded text-xs font-medium"
