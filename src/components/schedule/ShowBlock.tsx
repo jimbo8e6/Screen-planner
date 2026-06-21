@@ -30,12 +30,13 @@ export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Prop
   const [hovered, setHovered] = useState(false);
   const { startDrag } = useDragContext();
 
+  const categoryKey =
+    show.screeningType ??
+    film.specialScreening?.type ??
+    (show.isSenior || film.isSeniorFilm ? 'senior' : undefined);
+
   const blockColor = colorMode === 'by-category'
-    ? (show.screeningType
-        ? CATEGORY_COLORS[show.screeningType]
-        : show.isSenior
-          ? CATEGORY_COLORS.senior
-          : CATEGORY_COLORS.standard)
+    ? (categoryKey ? (CATEGORY_COLORS[categoryKey] ?? CATEGORY_COLORS.standard) : CATEGORY_COLORS.standard)
     : film.color;
 
   const showDur = showDurationMinutes(film.runtime);
