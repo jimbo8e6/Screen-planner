@@ -1,18 +1,31 @@
 import { useState } from 'react';
-import { Wand2, Trash2, Calendar, Key, Film as FilmIcon } from 'lucide-react';
+import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard } from 'lucide-react';
 import { useStore } from '../../store';
 import { FilmCard } from '../films/FilmCard';
 import { FilmSearch } from '../films/FilmSearch';
 import { EventCinemaModal } from '../modals/EventCinemaModal';
+import { RegularShowModal } from '../modals/RegularShowModal';
 import { ApiKeyModal } from '../modals/ApiKeyModal';
 
+// These preset IDs must stay hidden from the main films list
+const PRESET_IDS = new Set([
+  'preset-film-club',
+  'preset-cine-circle',
+  'preset-toddlervision',
+  'preset-penguins',
+]);
+
 export function Sidebar() {
-  const films = useStore((s) => s.films);
+  const allFilms = useStore((s) => s.films);
   const autoSchedule = useStore((s) => s.autoSchedule);
   const clearGeneratedShows = useStore((s) => s.clearGeneratedShows);
   const apiKey = useStore((s) => s.tmdbApiKey);
 
+  // Regular show presets should not appear in the main films list
+  const films = allFilms.filter((f) => !PRESET_IDS.has(f.id));
+
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showRegularModal, setShowRegularModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
 
   return (
@@ -40,20 +53,27 @@ export function Sidebar() {
         </button>
         <div className="flex gap-1.5">
           <button
+            onClick={() => setShowRegularModal(true)}
+            className="flex-1 flex items-center gap-1.5 justify-center bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs rounded py-1.5 px-2 transition-colors"
+          >
+            <Clapperboard size={12} />
+            Regular Shows
+          </button>
+          <button
             onClick={() => setShowEventModal(true)}
             className="flex-1 flex items-center gap-1.5 justify-center bg-purple-600/80 hover:bg-purple-600 text-white text-xs rounded py-1.5 px-2 transition-colors"
           >
             <Calendar size={12} />
             Event Cinema
           </button>
-          <button
-            onClick={() => clearGeneratedShows()}
-            className="flex-1 flex items-center gap-1.5 justify-center bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded py-1.5 px-2 transition-colors"
-          >
-            <Trash2 size={12} />
-            Clear Shows
-          </button>
         </div>
+        <button
+          onClick={() => clearGeneratedShows()}
+          className="w-full flex items-center gap-1.5 justify-center bg-gray-700/60 hover:bg-gray-700 text-gray-400 text-xs rounded py-1.5 px-2 transition-colors"
+        >
+          <Trash2 size={12} />
+          Clear Auto-Scheduled Shows
+        </button>
       </div>
 
       {/* Films list */}
@@ -62,7 +82,9 @@ export function Sidebar() {
           <div className="text-center py-8">
             <FilmIcon size={24} className="text-gray-600 mx-auto mb-2" />
             <p className="text-gray-500 text-xs">
-              {apiKey ? 'Search for films below to add them to the programme.' : 'Add your TMDB API key to search for films.'}
+              {apiKey
+                ? 'Search for films below to add them to the programme.'
+                : 'Add your TMDB API key to search for films.'}
             </p>
           </div>
         )}
@@ -82,8 +104,7 @@ export function Sidebar() {
           <Key size={12} />
           {apiKey ? (
             <span>
-              TMDB API key set{' '}
-              <span className="text-green-400">✓</span>
+              TMDB API key set <span className="text-green-400">✓</span>
             </span>
           ) : (
             <span className="text-yellow-400">Set TMDB API key…</span>
@@ -91,6 +112,9 @@ export function Sidebar() {
         </button>
       </div>
 
+      {showRegularModal && (
+        <RegularShowModal onClose={() => setShowRegularModal(false)} />
+      )}
       {showEventModal && (
         <EventCinemaModal onClose={() => setShowEventModal(false)} />
       )}
