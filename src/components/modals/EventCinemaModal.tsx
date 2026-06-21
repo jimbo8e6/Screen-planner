@@ -9,7 +9,7 @@ interface Props {
   onClose: () => void;
 }
 
-const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAY_NAMES = ['Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
 
 export function EventCinemaModal({ onClose }: Props) {
   const weekStart = useStore((s) => s.weekStart);

@@ -4,7 +4,7 @@ import { useStore } from '../../store';
 import { IMG_BASE } from '../../utils/tmdb';
 import type { Film, FilmTermType, FilmTerms } from '../../types';
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAYS = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
 interface Props {
   film: Film;

@@ -35,13 +35,13 @@ export function showEndMinute(startMinute: number, runtime: number): number {
   return startMinute + showDurationMinutes(runtime);
 }
 
-// Is the given weekday index (0=Mon) a weekend day?
+// Week runs Fri–Thu (0=Fri, 1=Sat, 2=Sun, 3=Mon, 4=Tue, 5=Wed, 6=Thu)
 export function isWeekend(dayIndex: number): boolean {
-  return dayIndex === 5 || dayIndex === 6; // Sat=5, Sun=6
+  return dayIndex === 1 || dayIndex === 2; // Sat=1, Sun=2
 }
 
 export function isThursday(dayIndex: number): boolean {
-  return dayIndex === 3;
+  return dayIndex === 6; // Thu is the last day of the cinema week
 }
 
 export function getDefaultFirstStart(dayIndex: number): number {

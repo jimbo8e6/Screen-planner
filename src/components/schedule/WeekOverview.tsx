@@ -2,7 +2,7 @@ import { format, addDays } from 'date-fns';
 import { useStore } from '../../store';
 import { minutesToTimeString, showDurationMinutes } from '../../utils/time';
 
-const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 const SCREENS = [1, 2, 3] as const;
 
 // Mini grid: 10:00 → 23:30

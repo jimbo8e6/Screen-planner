@@ -5,7 +5,7 @@ import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
 
-const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
 // Timeline shows 10:00 AM to midnight
 const TIMELINE_START = 10 * 60; // 600

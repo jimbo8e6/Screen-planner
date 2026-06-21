@@ -33,14 +33,14 @@ interface State {
   clearGeneratedShows: () => void;
 }
 
-function mondayOf(date: Date): string {
-  return format(startOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+function fridayOf(date: Date): string {
+  return format(startOfWeek(date, { weekStartsOn: 5 }), 'yyyy-MM-dd');
 }
 
 export const useStore = create<State>()(
   persist(
     (set, get) => ({
-      weekStart: mondayOf(new Date()),
+      weekStart: fridayOf(new Date()),
       films: [],
       shows: [],
       tmdbApiKey: '',
@@ -52,9 +52,9 @@ export const useStore = create<State>()(
       setSelectedDay: (d) => set({ selectedDay: d }),
 
       nextWeek: () =>
-        set((s) => ({ weekStart: mondayOf(addWeeks(new Date(s.weekStart), 1)) })),
+        set((s) => ({ weekStart: fridayOf(addWeeks(new Date(s.weekStart), 1)) })),
       prevWeek: () =>
-        set((s) => ({ weekStart: mondayOf(subWeeks(new Date(s.weekStart), 1)) })),
+        set((s) => ({ weekStart: fridayOf(subWeeks(new Date(s.weekStart), 1)) })),
 
       addFilm: (filmData) => {
         const film: Film = {
