@@ -77,7 +77,12 @@ export function DragProvider({ children }: { children: React.ReactNode }) {
         if (t) {
           const rect = t.el.getBoundingClientRect();
           const raw = Math.round((e.clientX - rect.left) / t.zoom) + t.timelineStart;
-          setActiveTarget({ screen: t.screen, date: t.date, minute: Math.round(raw / 5) * 5 });
+          const snapped = Math.round(raw / 5) * 5;
+          const it = dragRef.current.item;
+          const minute = it.type === 'show'
+            ? Math.max(t.timelineStart, snapped - it.offsetMinutes)
+            : snapped;
+          setActiveTarget({ screen: t.screen, date: t.date, minute });
         } else {
           setActiveTarget(null);
         }
