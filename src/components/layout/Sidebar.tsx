@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown } from 'lucide-react';
 import { useStore } from '../../store';
 import { FilmCard } from '../films/FilmCard';
 import { FilmSearch } from '../films/FilmSearch';
@@ -7,6 +7,7 @@ import { EventCinemaModal } from '../modals/EventCinemaModal';
 import { RegularShowModal } from '../modals/RegularShowModal';
 import { ApiKeyModal } from '../modals/ApiKeyModal';
 import { exportSchedulePdf } from '../../utils/exportPdf';
+import type { Film } from '../../types';
 
 // These preset IDs must stay hidden from the main films list
 const PRESET_IDS = new Set([
@@ -16,6 +17,36 @@ const PRESET_IDS = new Set([
   'preset-penguins',
 ]);
 
+type SortKey = 'added' | 'az' | 'za' | 'term' | 'runtime-asc' | 'runtime-desc';
+
+const TERM_ORDER: Record<string, number> = {
+  'all-shows': 0,
+  'one-per-day': 1,
+  'last-house': 2,
+  'specific-days': 3,
+};
+
+const SORT_LABELS: Record<SortKey, string> = {
+  added:        'Added',
+  az:           'A–Z',
+  za:           'Z–A',
+  term:         'Term',
+  'runtime-asc':  'Runtime ↑',
+  'runtime-desc': 'Runtime ↓',
+};
+
+function sortFilms(films: Film[], key: SortKey): Film[] {
+  const copy = [...films];
+  switch (key) {
+    case 'az':           return copy.sort((a, b) => a.title.localeCompare(b.title));
+    case 'za':           return copy.sort((a, b) => b.title.localeCompare(a.title));
+    case 'term':         return copy.sort((a, b) => (TERM_ORDER[a.terms.type] ?? 9) - (TERM_ORDER[b.terms.type] ?? 9));
+    case 'runtime-asc':  return copy.sort((a, b) => a.runtime - b.runtime);
+    case 'runtime-desc': return copy.sort((a, b) => b.runtime - a.runtime);
+    default:             return copy;
+  }
+}
+
 export function Sidebar() {
   const allFilms = useStore((s) => s.films);
   const shows = useStore((s) => s.shows);
@@ -24,12 +55,18 @@ export function Sidebar() {
   const clearGeneratedShows = useStore((s) => s.clearGeneratedShows);
   const apiKey = useStore((s) => s.tmdbApiKey);
 
-  // Regular show presets should not appear in the main films list
-  const films = allFilms.filter((f) => !PRESET_IDS.has(f.id));
-
   const [showEventModal, setShowEventModal] = useState(false);
   const [showRegularModal, setShowRegularModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>('added');
+  const [showSortMenu, setShowSortMenu] = useState(false);
+
+  const baseFilms = useMemo(
+    () => allFilms.filter((f) => !PRESET_IDS.has(f.id)),
+    [allFilms]
+  );
+
+  const films = useMemo(() => sortFilms(baseFilms, sortKey), [baseFilms, sortKey]);
 
   return (
     <aside className="w-64 flex-shrink-0 bg-gray-900 border-r border-gray-700 flex flex-col h-full overflow-hidden">
@@ -88,22 +125,55 @@ export function Sidebar() {
       </div>
 
       {/* Films list */}
-      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
-        {films.length === 0 && (
-          <div className="text-center py-8">
-            <FilmIcon size={24} className="text-gray-600 mx-auto mb-2" />
-            <p className="text-gray-500 text-xs">
-              {apiKey
-                ? 'Search for films below to add them to the programme.'
-                : 'Add your TMDB API key to search for films.'}
-            </p>
+      <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+        {/* Sort bar */}
+        {baseFilms.length > 1 && (
+          <div className="px-3 pt-2 pb-1 relative">
+            <button
+              onClick={() => setShowSortMenu((v) => !v)}
+              className="flex items-center gap-1.5 text-gray-400 hover:text-white text-xs transition-colors"
+            >
+              <ArrowUpDown size={11} />
+              <span>{SORT_LABELS[sortKey]}</span>
+            </button>
+
+            {showSortMenu && (
+              <div className="absolute left-3 top-full mt-1 z-30 bg-gray-800 border border-gray-600 rounded-lg shadow-xl py-1 min-w-36">
+                {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => { setSortKey(key); setShowSortMenu(false); }}
+                    className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
+                      sortKey === key
+                        ? 'text-white bg-blue-600/40'
+                        : 'text-gray-300 hover:bg-gray-700'
+                    }`}
+                  >
+                    {SORT_LABELS[key]}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
-        {films.map((film) => (
-          <FilmCard key={film.id} film={film} />
-        ))}
 
-        <FilmSearch />
+        <div className="px-3 pb-2 space-y-2 flex-1">
+          {films.length === 0 && (
+            <div className="text-center py-8">
+              <FilmIcon size={24} className="text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-500 text-xs">
+                {apiKey
+                  ? 'Search for films below to add them to the programme.'
+                  : 'Add your TMDB API key to search for films.'}
+              </p>
+            </div>
+          )}
+          {films.map((film) => (
+            <FilmCard key={film.id} film={film} />
+          ))}
+
+          <FilmSearch />
+        </div>
       </div>
 
       {/* Footer */}
