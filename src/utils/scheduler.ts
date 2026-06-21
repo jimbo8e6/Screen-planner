@@ -184,9 +184,10 @@ export function buildSchedule(
     }
 
     // ── Determine which films need scheduling today ──
-    // Films with a special screening on this day still follow their regular
-    // terms for any *additional* shows; the special show above is on top.
+    // Films with a specialScreening are a single one-off show handled above;
+    // exclude them from the regular scheduling pass entirely.
     const filmsToday: Film[] = films.filter((film) => {
+      if (film.specialScreening) return false;
       if (film.terms.type === 'specific-days') {
         return film.terms.specificDays?.includes(dayIdx) ?? false;
       }
@@ -318,7 +319,9 @@ export function fillAdditionalScreens(
     const firstStartBase = weekend ? WEEKEND_START_MIN : WEEKDAY_START_MIN;
     const firstStartMax = weekend ? WEEKEND_START_MAX : WEEKDAY_START_MAX;
 
-    const allFilms = films.filter((f) => f.terms.type === 'all-shows' || f.terms.type === 'specific-days');
+    const allFilms = films.filter((f) =>
+      !f.specialScreening && (f.terms.type === 'all-shows' || f.terms.type === 'specific-days')
+    );
 
     const dayShows = [...currentShows, ...extra].filter((s) => s.date === date);
 
