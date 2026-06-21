@@ -20,10 +20,12 @@ const PRESET_IDS = new Set([
 type SortKey = 'added' | 'az' | 'za' | 'term' | 'runtime-asc' | 'runtime-desc';
 
 const TERM_ORDER: Record<string, number> = {
-  'all-shows': 0,
-  'one-per-day': 1,
-  'last-house': 2,
-  'specific-days': 3,
+  'all-shows':     0,
+  'split':         1,
+  'one-per-day':   2,
+  'last-two':      3,
+  'last-house':    4,
+  'specific-days': 5,
 };
 
 const SORT_LABELS: Record<SortKey, string> = {

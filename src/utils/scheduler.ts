@@ -142,7 +142,7 @@ export function buildSchedule(
     // Exclude films that are handled as special/senior one-offs.
     const filmsToday: Film[] = films.filter((film) => {
       if (film.specialScreening || film.isSeniorFilm) return false;
-      if (film.terms.type === 'specific-days') {
+      if (film.terms.type === 'specific-days' || film.terms.type === 'split') {
         return film.terms.specificDays?.includes(dayIdx) ?? false;
       }
       return true;
@@ -151,9 +151,10 @@ export function buildSchedule(
     const targetEnd =
       TARGET_END_MIN + Math.round(Math.random() * (TARGET_END_MAX - TARGET_END_MIN));
 
+    const isAllDay = (t: string) => t === 'all-shows' || t === 'split';
     const orderedFilms = [...filmsToday].sort((a, b) => {
-      if (a.terms.type === 'all-shows' && b.terms.type !== 'all-shows') return -1;
-      if (a.terms.type !== 'all-shows' && b.terms.type === 'all-shows') return 1;
+      if (isAllDay(a.terms.type) && !isAllDay(b.terms.type)) return -1;
+      if (!isAllDay(a.terms.type) && isAllDay(b.terms.type)) return 1;
       return 0;
     });
 
@@ -193,7 +194,23 @@ export function buildSchedule(
         continue;
       }
 
-      // 'all-shows' (and 'specific-days' on qualifying days):
+      if (film.terms.type === 'last-two') {
+        const idealTimes = buildIdealStartTimes(film.runtime, firstStartBase, targetEnd);
+        const lastTwo = idealTimes.slice(-2);
+        for (let i = 0; i < lastTwo.length; i++) {
+          const screenIdx = (i + filmIdx + dayIdx) % 3;
+          const screen = SCREENS[screenIdx];
+          const start = findAvailableStart(daySchedule[screen], lastTwo[i], slotDur);
+          if (start !== null && start <= DAY_END_HARD - showDur) {
+            const id = nanoid();
+            daySchedule[screen].push({ start, end: start + slotDur, filmId: film.id, showId: id });
+            generated.push({ id, filmId: film.id, screen, date, startMinute: start, isFixed: false, isSenior: false });
+          }
+        }
+        continue;
+      }
+
+      // 'all-shows', 'split' (on qualifying days), and 'specific-days':
       // Rotate the SCREEN on each time slot so no film occupies Screen 1 all day.
       // Slot i for film j on day d → screen (i + j + d) % 3.
       // This guarantees each film cycles through Sc1→Sc2→Sc3→Sc1… across the day
@@ -234,10 +251,14 @@ export function fillAdditionalScreens(
     const firstStartBase = weekend ? WEEKEND_START_MIN : WEEKDAY_START_MIN;
     const firstStartMax = weekend ? WEEKEND_START_MAX : WEEKDAY_START_MAX;
 
-    const allFilms = films.filter((f) =>
-      !f.specialScreening && !f.isSeniorFilm &&
-      (f.terms.type === 'all-shows' || f.terms.type === 'specific-days')
-    );
+    const allFilms = films.filter((f) => {
+      if (f.specialScreening || f.isSeniorFilm) return false;
+      if (f.terms.type === 'all-shows') return true;
+      if (f.terms.type === 'split' || f.terms.type === 'specific-days') {
+        return f.terms.specificDays?.includes(dayIdx) ?? false;
+      }
+      return false;
+    });
 
     const dayShows = [...currentShows, ...extra].filter((s) => s.date === date);
 

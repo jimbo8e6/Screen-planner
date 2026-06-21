@@ -4,6 +4,8 @@ export type FilmTermType =
   | 'all-shows'
   | 'one-per-day'
   | 'last-house'
+  | 'last-two'
+  | 'split'
   | 'specific-days';
 
 export interface FilmTerms {

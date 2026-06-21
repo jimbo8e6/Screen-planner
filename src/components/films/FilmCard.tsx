@@ -110,6 +110,8 @@ export function FilmCard({ film }: Props) {
               {film.terms.type === 'all-shows' && 'All shows'}
               {film.terms.type === 'one-per-day' && '1/day'}
               {film.terms.type === 'last-house' && 'Last house'}
+              {film.terms.type === 'last-two' && 'Last 2'}
+              {film.terms.type === 'split' && 'Split'}
               {film.terms.type === 'specific-days' && 'Specific days'}
             </span>
             )}
@@ -142,7 +144,7 @@ export function FilmCard({ film }: Props) {
           <div>
             <p className="text-gray-400 text-xs mb-1 font-medium">Screening term</p>
             <div className="grid grid-cols-2 gap-1">
-              {(['all-shows', 'one-per-day', 'last-house', 'specific-days'] as FilmTermType[]).map((type) => (
+              {(['all-shows', 'one-per-day', 'last-house', 'last-two', 'split', 'specific-days'] as FilmTermType[]).map((type) => (
                 <button
                   key={type}
                   onClick={() => setTermType(type)}
@@ -154,26 +156,46 @@ export function FilmCard({ film }: Props) {
                   {type === 'all-shows' && 'All shows'}
                   {type === 'one-per-day' && '1 per day'}
                   {type === 'last-house' && 'Last house'}
+                  {type === 'last-two' && 'Last 2 shows'}
+                  {type === 'split' && 'Split week'}
                   {type === 'specific-days' && 'Specific days'}
                 </button>
               ))}
             </div>
           </div>
 
-          {film.terms.type === 'specific-days' && (
-            <div className="flex gap-1 flex-wrap">
-              {DAYS.map((day, i) => (
-                <button
-                  key={day}
-                  onClick={() => toggleDay(i)}
-                  className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
-                    film.terms.specificDays?.includes(i) ? 'text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                  }`}
-                  style={film.terms.specificDays?.includes(i) ? { backgroundColor: film.color } : {}}
-                >
-                  {day}
-                </button>
-              ))}
+          {(film.terms.type === 'specific-days' || film.terms.type === 'split') && (
+            <div className="space-y-1">
+              {film.terms.type === 'split' && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => updateFilmTerms(film.id, { ...film.terms, specificDays: [0, 1, 2, 3] })}
+                    className="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400 hover:bg-gray-600 transition-colors"
+                  >
+                    Fri–Mon
+                  </button>
+                  <button
+                    onClick={() => updateFilmTerms(film.id, { ...film.terms, specificDays: [4, 5, 6] })}
+                    className="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400 hover:bg-gray-600 transition-colors"
+                  >
+                    Tue–Thu
+                  </button>
+                </div>
+              )}
+              <div className="flex gap-1 flex-wrap">
+                {DAYS.map((day, i) => (
+                  <button
+                    key={day}
+                    onClick={() => toggleDay(i)}
+                    className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
+                      film.terms.specificDays?.includes(i) ? 'text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    }`}
+                    style={film.terms.specificDays?.includes(i) ? { backgroundColor: film.color } : {}}
+                  >
+                    {day}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
