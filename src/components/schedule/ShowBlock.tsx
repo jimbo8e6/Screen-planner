@@ -82,11 +82,11 @@ export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Prop
       onPointerUp={handlePointerUp}
       onContextMenu={(e) => e.preventDefault()}
     >
-      {/* Trailer buffer indicator */}
+      {/* Trailers/ads buffer at front */}
       <div
-        className="absolute top-0 right-0 bottom-0 opacity-30"
+        className="absolute top-0 left-0 bottom-0 opacity-30"
         style={{ width: 20 * zoom, backgroundColor: '#000' }}
-        title="20 min trailers"
+        title="20 min trailers/ads"
       />
 
       <div className="relative px-1.5 py-0.5 h-full flex flex-col justify-between overflow-hidden">
