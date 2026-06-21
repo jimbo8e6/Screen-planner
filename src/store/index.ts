@@ -48,7 +48,11 @@ export const useStore = create<State>()(
       zoom: 2, // px per minute
       selectedDay: 0,
 
-      setTmdbApiKey: (key) => set({ tmdbApiKey: key }),
+      setTmdbApiKey: (key) => {
+        // Persist API key under a stable key so it survives store version resets
+        try { localStorage.setItem('tmdb-api-key', key); } catch { /* ignore */ }
+        set({ tmdbApiKey: key });
+      },
       setZoom: (z) => set({ zoom: Math.max(1, Math.min(4, z)) }),
       setSelectedDay: (d) => set({ selectedDay: d }),
 
@@ -127,6 +131,17 @@ export const useStore = create<State>()(
     }),
     {
       name: 'cinema-schedule',
+      version: 3,
+      migrate: (stored) => stored, // accept any prior version as-is
+      onRehydrateStorage: () => (state) => {
+        // Recover API key from stable key if the main store was reset
+        if (state && !state.tmdbApiKey) {
+          try {
+            const saved = localStorage.getItem('tmdb-api-key');
+            if (saved) state.tmdbApiKey = saved;
+          } catch { /* ignore */ }
+        }
+      },
       partialize: (s) => ({
         weekStart: s.weekStart,
         films: s.films,

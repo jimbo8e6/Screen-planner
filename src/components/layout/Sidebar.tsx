@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard } from 'lucide-react';
+import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown } from 'lucide-react';
 import { useStore } from '../../store';
 import { FilmCard } from '../films/FilmCard';
 import { FilmSearch } from '../films/FilmSearch';
 import { EventCinemaModal } from '../modals/EventCinemaModal';
 import { RegularShowModal } from '../modals/RegularShowModal';
 import { ApiKeyModal } from '../modals/ApiKeyModal';
+import { exportSchedulePdf } from '../../utils/exportPdf';
 
 // These preset IDs must stay hidden from the main films list
 const PRESET_IDS = new Set([
@@ -17,6 +18,8 @@ const PRESET_IDS = new Set([
 
 export function Sidebar() {
   const allFilms = useStore((s) => s.films);
+  const shows = useStore((s) => s.shows);
+  const weekStart = useStore((s) => s.weekStart);
   const autoSchedule = useStore((s) => s.autoSchedule);
   const clearGeneratedShows = useStore((s) => s.clearGeneratedShows);
   const apiKey = useStore((s) => s.tmdbApiKey);
@@ -73,6 +76,14 @@ export function Sidebar() {
         >
           <Trash2 size={12} />
           Clear Auto-Scheduled Shows
+        </button>
+        <button
+          onClick={() => exportSchedulePdf(weekStart, allFilms, shows)}
+          disabled={shows.length === 0}
+          className="w-full flex items-center gap-1.5 justify-center bg-green-700/80 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs rounded py-1.5 px-2 transition-colors"
+        >
+          <FileDown size={12} />
+          Export / Share PDF
         </button>
       </div>
 
