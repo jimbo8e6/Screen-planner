@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useStore } from '../../store';
 import { ShowBlock } from './ShowBlock';
 import type { ScreenNumber } from '../../types';
@@ -16,10 +17,16 @@ const SCREEN_LABELS: Record<ScreenNumber, string> = {
 };
 
 export function ScreenTrack({ screen, date, zoom, timelineStart }: Props) {
-  const shows = useStore((s) =>
-    s.shows.filter((sh) => sh.screen === screen && sh.date === date)
-  );
+  const allShows = useStore((s) => s.shows);
   const films = useStore((s) => s.films);
+
+  // Filter outside the selector so the selector returns a stable reference
+  // (inline .filter() inside useStore returns a new array every render →
+  // useSyncExternalStore sees it as always-changed → infinite loop)
+  const shows = useMemo(
+    () => allShows.filter((sh) => sh.screen === screen && sh.date === date),
+    [allShows, screen, date]
+  );
 
   return (
     <div className="flex">
