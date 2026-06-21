@@ -4,6 +4,7 @@ import { useStore } from '../../store';
 import { minutesToTimeString, showDurationMinutes } from '../../utils/time';
 import type { Show, Film } from '../../types';
 import { hexToRgba } from '../../utils/colors';
+import { SCREENING_TYPES } from '../../utils/screeningTypes';
 
 interface Props {
   show: Show;
@@ -90,6 +91,14 @@ export function ShowBlock({ show, film, zoom, timelineStart, onDragStart, onDrag
             {show.isFixed && (
               <Lock size={10} className="inline ml-1 text-white/60" />
             )}
+            {show.screeningType && (
+              <span
+                className="ml-1 text-xs font-bold px-0.5 rounded"
+                style={{ backgroundColor: SCREENING_TYPES[show.screeningType].color, color: '#fff' }}
+              >
+                {SCREENING_TYPES[show.screeningType].short}
+              </span>
+            )}
           </p>
           {hovered && !show.isFixed && (
             <button
@@ -129,6 +138,11 @@ export function ShowBlock({ show, film, zoom, timelineStart, onDragStart, onDrag
           )}
           {show.isFixed && (
             <p className="text-purple-400 text-xs">🔒 Fixed (event cinema)</p>
+          )}
+          {show.screeningType && (
+            <p className="text-xs font-semibold" style={{ color: SCREENING_TYPES[show.screeningType].color }}>
+              {SCREENING_TYPES[show.screeningType].label}
+            </p>
           )}
         </div>
       )}

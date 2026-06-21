@@ -9,7 +9,15 @@ export type FilmTermType =
 export interface FilmTerms {
   type: FilmTermType;
   minPerformancesPerWeek?: number;
-  specificDays?: number[]; // 0=Mon … 6=Sun
+  specificDays?: number[]; // 0=Fri … 6=Thu
+}
+
+export type ScreeningType = 'film-club' | 'cine-circle' | 'toddlervision' | 'penguins';
+
+export interface SpecialScreening {
+  type: ScreeningType;
+  day: number;       // 0=Fri … 6=Thu
+  time?: number;     // minutes from midnight; undefined = auto-place on that day
 }
 
 export interface Film {
@@ -22,7 +30,8 @@ export interface Film {
   overview: string;
   color: string;
   terms: FilmTerms;
-  isSeniorFilm: boolean; // if true, plays Thu 10:30
+  isSeniorFilm: boolean;
+  specialScreening?: SpecialScreening;
 }
 
 export interface Show {
@@ -31,26 +40,18 @@ export interface Show {
   screen: ScreenNumber;
   date: string; // 'YYYY-MM-DD'
   startMinute: number; // minutes from midnight
-  isFixed: boolean; // event cinema / senior – auto-scheduler won't move
+  isFixed: boolean;
   isSenior: boolean;
-}
-
-export interface EventCinemaEntry {
-  title: string;
-  date: string;
-  screen: ScreenNumber;
-  startMinute: number;
-  runtime: number;
-  color: string;
+  screeningType?: ScreeningType; // badge shown on the timeline block
 }
 
 export interface ScheduleState {
-  weekStart: string; // Monday ISO date 'YYYY-MM-DD'
+  weekStart: string;
   films: Film[];
   shows: Show[];
   tmdbApiKey: string;
-  zoom: number; // px per minute
-  selectedDay: number; // 0=Mon … 6=Sun
+  zoom: number;
+  selectedDay: number;
 }
 
 export interface TMDBSearchResult {

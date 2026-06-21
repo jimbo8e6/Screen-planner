@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
 import { format, startOfWeek, addWeeks, subWeeks } from 'date-fns';
-import type { Film, Show, ScreenNumber, FilmTerms } from '../types';
+import type { Film, Show, ScreenNumber, FilmTerms, SpecialScreening } from '../types';
 import { nextColor } from '../utils/colors';
 import { buildSchedule, fillAdditionalScreens } from '../utils/scheduler';
 
@@ -24,6 +24,7 @@ interface State {
   removeFilm: (id: string) => void;
   updateFilmTerms: (id: string, terms: FilmTerms) => void;
   toggleSeniorFilm: (id: string) => void;
+  setSpecialScreening: (id: string, screening: SpecialScreening | undefined) => void;
 
   addFixedShow: (show: Omit<Show, 'id'>) => void;
   removeShow: (id: string) => void;
@@ -83,7 +84,14 @@ export const useStore = create<State>()(
           films: s.films.map((f) =>
             f.id === id
               ? { ...f, isSeniorFilm: !f.isSeniorFilm }
-              : { ...f, isSeniorFilm: false } // only one senior film at a time
+              : { ...f, isSeniorFilm: false }
+          ),
+        })),
+
+      setSpecialScreening: (id, screening) =>
+        set((s) => ({
+          films: s.films.map((f) =>
+            f.id === id ? { ...f, specialScreening: screening } : f
           ),
         })),
 

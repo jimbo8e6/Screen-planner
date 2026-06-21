@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import type { Film, Show, ScreenNumber } from '../types';
+import type { Film, Show, ScreenNumber, ScreeningType } from '../types';
 import {
   showDurationMinutes,
   slotDurationMinutes,
@@ -139,7 +139,53 @@ export function buildSchedule(
       }
     }
 
+    // ── Special screenings (Film Club, Cine Circle, Toddlervision, Penguins) ──
+    // These are one-off shows on a specific day. If a time is provided it's
+    // fixed; if not, the scheduler auto-places it like any regular show.
+    for (const film of films) {
+      const ss = film.specialScreening;
+      if (!ss || ss.day !== dayIdx) continue;
+
+      const slotDur = slotDurationMinutes(film.runtime);
+      const showDur = showDurationMinutes(film.runtime);
+
+      if (ss.time !== undefined) {
+        // Fixed time — place exactly here on any free screen
+        for (const screen of SCREENS) {
+          const slotEnd = ss.time + slotDur;
+          if (!hasConflict(daySchedule[screen], ss.time, slotEnd)) {
+            const id = nanoid();
+            daySchedule[screen].push({ start: ss.time, end: slotEnd, filmId: film.id, showId: id });
+            generated.push({
+              id, filmId: film.id, screen, date,
+              startMinute: ss.time, isFixed: true, isSenior: false,
+              screeningType: ss.type as ScreeningType,
+            });
+            break;
+          }
+        }
+      } else {
+        // Auto-place: find best free slot, prefer evening
+        const preferStart = firstStartBase;
+        for (const screen of SCREENS) {
+          const start = findAvailableStart(daySchedule[screen], preferStart, slotDur);
+          if (start !== null && start <= DAY_END_HARD - showDur) {
+            const id = nanoid();
+            daySchedule[screen].push({ start, end: start + slotDur, filmId: film.id, showId: id });
+            generated.push({
+              id, filmId: film.id, screen, date,
+              startMinute: start, isFixed: false, isSenior: false,
+              screeningType: ss.type as ScreeningType,
+            });
+            break;
+          }
+        }
+      }
+    }
+
     // ── Determine which films need scheduling today ──
+    // Films with a special screening on this day still follow their regular
+    // terms for any *additional* shows; the special show above is on top.
     const filmsToday: Film[] = films.filter((film) => {
       if (film.terms.type === 'specific-days') {
         return film.terms.specificDays?.includes(dayIdx) ?? false;
