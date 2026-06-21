@@ -106,7 +106,7 @@ export const useStore = create<State>()(
       moveShow: (id, screen, startMinute) =>
         set((s) => ({
           shows: s.shows.map((sh) =>
-            sh.id === id ? { ...sh, screen, startMinute } : sh
+            sh.id === id ? { ...sh, screen, startMinute, isFixed: true } : sh
           ),
         })),
 

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useStore } from '../../store';
 import { ShowBlock } from './ShowBlock';
 import type { ScreenNumber } from '../../types';
@@ -19,14 +19,63 @@ const SCREEN_LABELS: Record<ScreenNumber, string> = {
 export function ScreenTrack({ screen, date, zoom, timelineStart }: Props) {
   const allShows = useStore((s) => s.shows);
   const films = useStore((s) => s.films);
+  const moveShow = useStore((s) => s.moveShow);
+  const addFixedShow = useStore((s) => s.addFixedShow);
 
-  // Filter outside the selector so the selector returns a stable reference
-  // (inline .filter() inside useStore returns a new array every render →
-  // useSyncExternalStore sees it as always-changed → infinite loop)
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [dropMinute, setDropMinute] = useState<number | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
   const shows = useMemo(
     () => allShows.filter((sh) => sh.screen === screen && sh.date === date),
     [allShows, screen, date]
   );
+
+  const clientXToMinute = (clientX: number): number => {
+    if (!trackRef.current) return timelineStart;
+    const rect = trackRef.current.getBoundingClientRect();
+    const raw = Math.round((clientX - rect.left) / zoom) + timelineStart;
+    return Math.round(raw / 5) * 5; // snap to 5-minute grid
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+    setDropMinute(clientXToMinute(e.clientX));
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!trackRef.current?.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+      setDropMinute(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    setDropMinute(null);
+
+    const minute = clientXToMinute(e.clientX);
+    const showId = e.dataTransfer.getData('showId');
+    const filmId = e.dataTransfer.getData('filmId');
+
+    if (showId) {
+      const offset = parseInt(e.dataTransfer.getData('offsetMinutes') || '0');
+      const newStart = Math.max(timelineStart, minute - offset);
+      moveShow(showId, screen, newStart);
+    } else if (filmId) {
+      addFixedShow({
+        filmId,
+        screen,
+        date,
+        startMinute: Math.max(timelineStart, minute),
+        isFixed: true,
+        isSenior: false,
+      });
+    }
+  };
 
   return (
     <div className="flex">
@@ -41,7 +90,16 @@ export function ScreenTrack({ screen, date, zoom, timelineStart }: Props) {
       </div>
 
       {/* Track */}
-      <div className="flex-1 relative h-14 bg-gray-800 border-b border-gray-700">
+      <div
+        ref={trackRef}
+        className={`flex-1 relative h-14 border-b border-gray-700 transition-colors ${
+          isDragOver ? 'bg-blue-900/30' : 'bg-gray-800'
+        }`}
+        style={isDragOver ? { outline: '2px solid #3b82f6', outlineOffset: '-2px' } : undefined}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* Hour grid lines */}
         {Array.from({ length: 24 }, (_, h) => {
           const minute = h * 60;
@@ -55,6 +113,14 @@ export function ScreenTrack({ screen, date, zoom, timelineStart }: Props) {
             />
           );
         })}
+
+        {/* Drop position indicator */}
+        {isDragOver && dropMinute !== null && (
+          <div
+            className="absolute top-0 bottom-0 w-0.5 bg-blue-400 pointer-events-none z-20"
+            style={{ left: (dropMinute - timelineStart) * zoom }}
+          />
+        )}
 
         {/* Shows */}
         {shows.map((show) => {

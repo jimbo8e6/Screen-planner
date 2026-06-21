@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Trash2, ChevronDown, ChevronUp, Star, X } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronUp, Star, X, GripVertical } from 'lucide-react';
 import { useStore } from '../../store';
 import { IMG_BASE } from '../../utils/tmdb';
 import { SCREENING_TYPES } from '../../utils/screeningTypes';
 import { minutesToTimeString, timeStringToMinutes } from '../../utils/time';
-import type { Film, FilmTermType, FilmTerms, ScreeningType } from '../../types';
+import type { Film, FilmTermType, FilmTerms, ScreeningType, ScreenNumber } from '../../types';
 
 const DAYS = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
@@ -37,10 +37,9 @@ export function FilmCard({ film }: Props) {
 
   const selectScreeningType = (type: ScreeningType) => {
     if (ss?.type === type) {
-      // Deselect
       setSpecialScreening(film.id, undefined);
     } else {
-      setSpecialScreening(film.id, { type, day: ss?.day ?? 3, time: ss?.time });
+      setSpecialScreening(film.id, { type, day: ss?.day ?? 3, time: ss?.time, screen: ss?.screen });
     }
   };
 
@@ -62,6 +61,11 @@ export function FilmCard({ film }: Props) {
     setSpecialScreening(film.id, { ...ss, time: undefined });
   };
 
+  const setScreeningScreen = (screen: ScreenNumber | undefined) => {
+    if (!ss) return;
+    setSpecialScreening(film.id, { ...ss, screen });
+  };
+
   return (
     <div
       className="rounded-lg overflow-hidden border"
@@ -69,6 +73,18 @@ export function FilmCard({ film }: Props) {
     >
       {/* Card header */}
       <div className="flex items-center gap-2 p-2" style={{ backgroundColor: film.color + '22' }}>
+        {/* Drag handle — drag this film onto the timeline */}
+        <div
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.setData('filmId', film.id);
+            e.dataTransfer.effectAllowed = 'copy';
+          }}
+          className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 transition-colors"
+          title="Drag onto timeline to place a show"
+        >
+          <GripVertical size={14} />
+        </div>
         {film.poster ? (
           <img
             src={`${IMG_BASE}${film.poster}`}
@@ -97,6 +113,7 @@ export function FilmCard({ film }: Props) {
                 style={{ backgroundColor: SCREENING_TYPES[ss.type].color, color: '#fff' }}
               >
                 {SCREENING_TYPES[ss.type].short} · {DAYS[ss.day]}
+                {ss.screen !== undefined ? ` · Sc${ss.screen}` : ''}
                 {ss.time !== undefined ? ` · ${minutesToTimeString(ss.time)}` : ' · auto'}
               </span>
             )}
@@ -203,6 +220,36 @@ export function FilmCard({ film }: Props) {
                         }}
                       >
                         {day}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Screen picker */}
+                <div>
+                  <p className="text-gray-500 text-xs mb-1">Screen</p>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setScreeningScreen(undefined)}
+                      className="text-xs px-1.5 py-0.5 rounded transition-colors"
+                      style={{
+                        backgroundColor: ss.screen === undefined ? SCREENING_TYPES[ss.type].color : '#374151',
+                        color: ss.screen === undefined ? '#fff' : '#9CA3AF',
+                      }}
+                    >
+                      Auto
+                    </button>
+                    {([1, 2, 3] as ScreenNumber[]).map((sc) => (
+                      <button
+                        key={sc}
+                        onClick={() => setScreeningScreen(sc)}
+                        className="text-xs px-1.5 py-0.5 rounded transition-colors"
+                        style={{
+                          backgroundColor: ss.screen === sc ? SCREENING_TYPES[ss.type].color : '#374151',
+                          color: ss.screen === sc ? '#fff' : '#9CA3AF',
+                        }}
+                      >
+                        Sc {sc}
                       </button>
                     ))}
                   </div>

@@ -16,8 +16,9 @@ export type ScreeningType = 'film-club' | 'cine-circle' | 'toddlervision' | 'pen
 
 export interface SpecialScreening {
   type: ScreeningType;
-  day: number;       // 0=Fri … 6=Thu
-  time?: number;     // minutes from midnight; undefined = auto-place on that day
+  day: number;           // 0=Fri … 6=Thu
+  time?: number;         // minutes from midnight; undefined = auto-place on that day
+  screen?: ScreenNumber; // if undefined, auto-select the first free screen
 }
 
 export interface Film {

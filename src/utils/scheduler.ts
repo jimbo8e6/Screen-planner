@@ -149,9 +149,11 @@ export function buildSchedule(
       const slotDur = slotDurationMinutes(film.runtime);
       const showDur = showDurationMinutes(film.runtime);
 
+      const screensToTry: ScreenNumber[] = ss.screen ? [ss.screen] : SCREENS;
+
       if (ss.time !== undefined) {
-        // Fixed time — place exactly here on any free screen
-        for (const screen of SCREENS) {
+        // Fixed time — place on the specified screen, or the first free one
+        for (const screen of screensToTry) {
           const slotEnd = ss.time + slotDur;
           if (!hasConflict(daySchedule[screen], ss.time, slotEnd)) {
             const id = nanoid();
@@ -165,9 +167,9 @@ export function buildSchedule(
           }
         }
       } else {
-        // Auto-place: find best free slot, prefer evening
+        // Auto-place on the specified screen (or first free one)
         const preferStart = firstStartBase;
-        for (const screen of SCREENS) {
+        for (const screen of screensToTry) {
           const start = findAvailableStart(daySchedule[screen], preferStart, slotDur);
           if (start !== null && start <= DAY_END_HARD - showDur) {
             const id = nanoid();

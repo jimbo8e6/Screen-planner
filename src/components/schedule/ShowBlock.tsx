@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { X, Lock } from 'lucide-react';
 import { useStore } from '../../store';
 import { minutesToTimeString, showDurationMinutes } from '../../utils/time';
@@ -10,71 +10,54 @@ interface Props {
   show: Show;
   film: Film;
   zoom: number;
-  timelineStart: number; // minute offset of left edge
-  onDragStart?: () => void;
-  onDragEnd?: () => void;
+  timelineStart: number;
 }
 
-export function ShowBlock({ show, film, zoom, timelineStart, onDragStart, onDragEnd }: Props) {
+export function ShowBlock({ show, film, zoom, timelineStart }: Props) {
   const removeShow = useStore((s) => s.removeShow);
-  const moveShow = useStore((s) => s.moveShow);
   const [hovered, setHovered] = useState(false);
-  const dragStartX = useRef<number | null>(null);
-  const dragStartMinute = useRef<number>(0);
+  const [isDragging, setIsDragging] = useState(false);
 
   const showDur = showDurationMinutes(film.runtime);
   const left = (show.startMinute - timelineStart) * zoom;
   const width = showDur * zoom;
-
   const endMinute = show.startMinute + showDur;
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (show.isFixed) return;
-    e.preventDefault();
-    dragStartX.current = e.clientX;
-    dragStartMinute.current = show.startMinute;
-    onDragStart?.();
+  const draggable = !show.isSenior;
 
-    const onMove = (me: MouseEvent) => {
-      if (dragStartX.current === null) return;
-      const delta = Math.round((me.clientX - dragStartX.current) / zoom);
-      const newStart = Math.max(0, dragStartMinute.current + delta);
-      moveShow(show.id, show.screen, newStart);
-    };
-
-    const onUp = () => {
-      dragStartX.current = null;
-      onDragEnd?.();
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+  const handleDragStart = (e: React.DragEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetMinutes = Math.round((e.clientX - rect.left) / zoom);
+    e.dataTransfer.setData('showId', show.id);
+    e.dataTransfer.setData('offsetMinutes', String(offsetMinutes));
+    e.dataTransfer.effectAllowed = 'move';
+    setIsDragging(true);
   };
+
+  const handleDragEnd = () => setIsDragging(false);
 
   return (
     <div
-      className="absolute top-1 bottom-1 rounded select-none overflow-hidden"
+      draggable={draggable}
+      className="absolute top-1 bottom-1 rounded select-none overflow-hidden transition-opacity"
       style={{
         left,
         width: Math.max(width, 24),
         backgroundColor: hexToRgba(film.color, show.isSenior ? 0.9 : 0.75),
         borderLeft: `3px solid ${film.color}`,
-        cursor: show.isFixed ? 'default' : 'grab',
+        cursor: draggable ? (isDragging ? 'grabbing' : 'grab') : 'default',
         zIndex: hovered ? 10 : 1,
+        opacity: isDragging ? 0.4 : 1,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onMouseDown={handleMouseDown}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
     >
       {/* Trailer buffer indicator */}
       <div
         className="absolute top-0 right-0 bottom-0 opacity-30"
-        style={{
-          width: 20 * zoom,
-          backgroundColor: '#000',
-        }}
+        style={{ width: 20 * zoom, backgroundColor: '#000' }}
         title="20 min trailers"
       />
 
@@ -88,7 +71,7 @@ export function ShowBlock({ show, film, zoom, timelineStart, onDragStart, onDrag
             {show.isSenior && (
               <span className="ml-1 text-yellow-300 text-xs">★</span>
             )}
-            {show.isFixed && (
+            {show.isFixed && !show.isSenior && (
               <Lock size={10} className="inline ml-1 text-white/60" />
             )}
             {show.screeningType && (
@@ -100,7 +83,7 @@ export function ShowBlock({ show, film, zoom, timelineStart, onDragStart, onDrag
               </span>
             )}
           </p>
-          {hovered && !show.isFixed && (
+          {hovered && (
             <button
               className="flex-shrink-0 text-white/60 hover:text-white transition-colors"
               onMouseDown={(e) => e.stopPropagation()}
@@ -136,8 +119,8 @@ export function ShowBlock({ show, film, zoom, timelineStart, onDragStart, onDrag
           {show.isSenior && (
             <p className="text-yellow-400 text-xs">★ Senior screening</p>
           )}
-          {show.isFixed && (
-            <p className="text-purple-400 text-xs">🔒 Fixed (event cinema)</p>
+          {show.isFixed && !show.isSenior && (
+            <p className="text-purple-400 text-xs">🔒 Fixed position</p>
           )}
           {show.screeningType && (
             <p className="text-xs font-semibold" style={{ color: SCREENING_TYPES[show.screeningType].color }}>
