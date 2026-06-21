@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette } from 'lucide-react';
 import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
@@ -21,6 +21,8 @@ export function Timeline() {
   const nextWeek = useStore((s) => s.nextWeek);
   const prevWeek = useStore((s) => s.prevWeek);
   const shows = useStore((s) => s.shows);
+  const colorMode = useStore((s) => s.colorMode);
+  const setColorMode = useStore((s) => s.setColorMode);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [detailShowId, setDetailShowId] = useState<string | null>(null);
@@ -87,6 +89,21 @@ export function Timeline() {
               </button>
             );
           })}
+        </div>
+
+        {/* Colour mode toggle */}
+        <div className="flex items-center border-l border-gray-700 pl-2">
+          <button
+            onClick={() => setColorMode(colorMode === 'per-film' ? 'by-category' : 'per-film')}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+              colorMode === 'by-category'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+            title={colorMode === 'per-film' ? 'Switch to category colours' : 'Switch to per-film colours'}
+          >
+            <Palette size={14} />
+          </button>
         </div>
 
         {/* Zoom controls */}

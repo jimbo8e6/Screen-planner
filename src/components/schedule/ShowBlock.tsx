@@ -15,10 +15,28 @@ interface Props {
   onShowClick: (showId: string) => void;
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  'film-club':     '#B91C1C',
+  'cine-circle':   '#6D28D9',
+  'toddlervision': '#047857',
+  'penguins':      '#0891B2',
+  'senior':        '#B45309',
+  standard:        '#3B82F6',
+};
+
 export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Props) {
   const removeShow = useStore((s) => s.removeShow);
+  const colorMode = useStore((s) => s.colorMode);
   const [hovered, setHovered] = useState(false);
   const { startDrag } = useDragContext();
+
+  const blockColor = colorMode === 'by-category'
+    ? (show.screeningType
+        ? CATEGORY_COLORS[show.screeningType]
+        : show.isSenior
+          ? CATEGORY_COLORS.senior
+          : CATEGORY_COLORS.standard)
+    : film.color;
 
   const showDur = showDurationMinutes(film.runtime);
   const left = (show.startMinute - timelineStart) * zoom;
@@ -69,8 +87,8 @@ export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Prop
       style={{
         left,
         width: Math.max(width, 24),
-        backgroundColor: hexToRgba(film.color, show.isSenior ? 0.9 : 0.75),
-        borderLeft: `3px solid ${film.color}`,
+        backgroundColor: hexToRgba(blockColor, show.isSenior ? 0.9 : 0.75),
+        borderLeft: `3px solid ${blockColor}`,
         cursor: canDrag ? 'grab' : 'default',
         zIndex: hovered ? 10 : 1,
         touchAction: 'none',

@@ -13,10 +13,12 @@ interface State {
   tmdbApiKey: string;
   zoom: number;
   selectedDay: number;
+  colorMode: 'per-film' | 'by-category';
 
   setTmdbApiKey: (key: string) => void;
   setZoom: (z: number) => void;
   setSelectedDay: (d: number) => void;
+  setColorMode: (m: 'per-film' | 'by-category') => void;
   nextWeek: () => void;
   prevWeek: () => void;
 
@@ -47,6 +49,7 @@ export const useStore = create<State>()(
       tmdbApiKey: '',
       zoom: 2, // px per minute
       selectedDay: 0,
+      colorMode: 'per-film',
 
       setTmdbApiKey: (key) => {
         // Persist API key under a stable key so it survives store version resets
@@ -55,6 +58,7 @@ export const useStore = create<State>()(
       },
       setZoom: (z) => set({ zoom: Math.max(1, Math.min(4, z)) }),
       setSelectedDay: (d) => set({ selectedDay: d }),
+      setColorMode: (m) => set({ colorMode: m }),
 
       nextWeek: () =>
         set((s) => ({ weekStart: fridayOf(addWeeks(new Date(s.weekStart), 1)) })),
@@ -148,6 +152,7 @@ export const useStore = create<State>()(
         shows: s.shows,
         tmdbApiKey: s.tmdbApiKey,
         zoom: s.zoom,
+        colorMode: s.colorMode,
       }),
     }
   )
