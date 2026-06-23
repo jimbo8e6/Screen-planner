@@ -14,11 +14,15 @@ interface State {
   zoom: number;
   selectedDay: number;
   colorMode: 'per-film' | 'by-category';
+  syncCode: string;
+  syncStatus: 'idle' | 'syncing' | 'synced' | 'error';
 
   setTmdbApiKey: (key: string) => void;
   setZoom: (z: number) => void;
   setSelectedDay: (d: number) => void;
   setColorMode: (m: 'per-film' | 'by-category') => void;
+  setSyncCode: (code: string) => void;
+  setSyncStatus: (s: 'idle' | 'syncing' | 'synced' | 'error') => void;
   nextWeek: () => void;
   prevWeek: () => void;
 
@@ -50,6 +54,8 @@ export const useStore = create<State>()(
       zoom: 2, // px per minute
       selectedDay: 0,
       colorMode: 'per-film',
+      syncCode: (() => { try { return localStorage.getItem('cinema-sync-code') ?? ''; } catch { return ''; } })(),
+      syncStatus: 'idle' as const,
 
       setTmdbApiKey: (key) => {
         // Persist API key under a stable key so it survives store version resets
@@ -59,6 +65,11 @@ export const useStore = create<State>()(
       setZoom: (z) => set({ zoom: Math.max(1, Math.min(4, z)) }),
       setSelectedDay: (d) => set({ selectedDay: d }),
       setColorMode: (m) => set({ colorMode: m }),
+      setSyncCode: (code) => {
+        try { localStorage.setItem('cinema-sync-code', code); } catch { /* ignore */ }
+        set({ syncCode: code });
+      },
+      setSyncStatus: (s) => set({ syncStatus: s }),
 
       nextWeek: () =>
         set((s) => ({ weekStart: fridayOf(addWeeks(new Date(s.weekStart), 1)) })),

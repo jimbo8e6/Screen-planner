@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
-import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown } from 'lucide-react';
+import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown, Cloud } from 'lucide-react';
 import { useStore } from '../../store';
 import { FilmCard } from '../films/FilmCard';
 import { FilmSearch } from '../films/FilmSearch';
 import { EventCinemaModal } from '../modals/EventCinemaModal';
 import { RegularShowModal } from '../modals/RegularShowModal';
 import { ApiKeyModal } from '../modals/ApiKeyModal';
+import { SyncModal } from '../modals/SyncModal';
 import { exportSchedulePdf } from '../../utils/exportPdf';
+import { supabase } from '../../lib/supabase';
 import type { Film } from '../../types';
 
 // These preset IDs must stay hidden from the main films list
@@ -49,7 +51,11 @@ function sortFilms(films: Film[], key: SortKey): Film[] {
   }
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  switchToCode: (code: string) => Promise<void>;
+}
+
+export function Sidebar({ switchToCode }: SidebarProps) {
   const allFilms = useStore((s) => s.films);
   const shows = useStore((s) => s.shows);
   const weekStart = useStore((s) => s.weekStart);
@@ -57,9 +63,12 @@ export function Sidebar() {
   const clearGeneratedShows = useStore((s) => s.clearGeneratedShows);
   const apiKey = useStore((s) => s.tmdbApiKey);
 
+  const syncStatus = useStore((s) => s.syncStatus);
+
   const [showEventModal, setShowEventModal] = useState(false);
   const [showRegularModal, setShowRegularModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('added');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
@@ -179,7 +188,22 @@ export function Sidebar() {
       </div>
 
       {/* Footer */}
-      <div className="px-3 py-2 border-t border-gray-700">
+      <div className="px-3 py-2 border-t border-gray-700 space-y-1">
+        {supabase && (
+          <button
+            onClick={() => setShowSyncModal(true)}
+            className="w-full flex items-center gap-2 text-gray-400 hover:text-white text-xs py-1.5 transition-colors"
+          >
+            <Cloud size={12} />
+            <span className="flex-1 text-left">Cloud sync</span>
+            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+              syncStatus === 'synced'  ? 'bg-green-400' :
+              syncStatus === 'syncing' ? 'bg-yellow-400 animate-pulse' :
+              syncStatus === 'error'   ? 'bg-red-400' :
+                                         'bg-gray-600'
+            }`} />
+          </button>
+        )}
         <button
           onClick={() => setShowApiModal(true)}
           className="w-full flex items-center gap-2 text-gray-400 hover:text-white text-xs py-1.5 transition-colors"
@@ -203,6 +227,12 @@ export function Sidebar() {
       )}
       {showApiModal && (
         <ApiKeyModal onClose={() => setShowApiModal(false)} />
+      )}
+      {showSyncModal && (
+        <SyncModal
+          onClose={() => setShowSyncModal(false)}
+          switchToCode={switchToCode}
+        />
       )}
     </aside>
   );
