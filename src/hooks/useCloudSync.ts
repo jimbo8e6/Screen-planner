@@ -39,6 +39,16 @@ export function useCloudSync() {
         // Stamp payloadRef before setState so the subscriber doesn't re-save what we just loaded
         payloadRef.current = JSON.stringify(data.data);
         useStore.setState(data.data);
+      } else {
+        // No cloud record yet — push the current local state up immediately
+        const localPayload = extractPayload(useStore.getState());
+        const str = JSON.stringify(localPayload);
+        await supabase.from('schedules').upsert({
+          id: code,
+          data: localPayload,
+          updated_at: new Date().toISOString(),
+        });
+        payloadRef.current = str;
       }
       setSyncStatus('synced');
     } catch {
