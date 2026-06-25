@@ -11,9 +11,10 @@ const DAYS = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
 interface Props {
   film: Film;
+  collapsed?: boolean;
 }
 
-export function FilmCard({ film }: Props) {
+export function FilmCard({ film, collapsed = false }: Props) {
   const removeFilm = useStore((s) => s.removeFilm);
   const updateFilmTerms = useStore((s) => s.updateFilmTerms);
   const setSpecialScreening = useStore((s) => s.setSpecialScreening);
@@ -69,6 +70,34 @@ export function FilmCard({ film }: Props) {
     if (!ss) return;
     setSpecialScreening(film.id, { ...ss, screen });
   };
+
+  if (collapsed) {
+    return (
+      <div
+        className="flex items-center gap-1.5 px-2 py-1 rounded"
+        style={{ borderLeft: `3px solid ${film.color}`, backgroundColor: film.color + '18' }}
+      >
+        <div
+          onPointerDown={(e) => {
+            e.preventDefault();
+            startDrag({ type: 'film', filmId: film.id }, e.clientX, e.clientY, film.title, film.color);
+          }}
+          className="flex-shrink-0 cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 transition-colors"
+          style={{ touchAction: 'none' }}
+          title="Drag onto timeline"
+        >
+          <GripVertical size={12} />
+        </div>
+        <p className="flex-1 text-white text-xs truncate">{film.title}</p>
+        <button
+          onClick={() => removeFilm(film.id)}
+          className="flex-shrink-0 text-gray-600 hover:text-red-400 transition-colors p-0.5"
+        >
+          <Trash2 size={11} />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown, Cloud } from 'lucide-react';
+import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown, Cloud, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { useStore } from '../../store';
 import { FilmCard } from '../films/FilmCard';
 import { FilmSearch } from '../films/FilmSearch';
@@ -75,6 +75,7 @@ export function Sidebar({ switchToCode }: SidebarProps) {
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('added');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   // Auto-switch to Properties tab when a show gets focused
   useEffect(() => {
@@ -163,36 +164,43 @@ export function Sidebar({ switchToCode }: SidebarProps) {
 
       {/* Films tab */}
       <div className={`flex-1 overflow-y-auto min-h-0 flex flex-col ${activeTab !== 'films' ? 'hidden' : ''}`}>
-        {/* Sort bar */}
-        {baseFilms.length > 1 && (
-          <div className="px-3 pt-2 pb-1 relative">
-            <button
-              onClick={() => setShowSortMenu((v) => !v)}
-              className="flex items-center gap-1.5 text-gray-400 hover:text-white text-xs transition-colors"
-            >
-              <ArrowUpDown size={11} />
-              <span>{SORT_LABELS[sortKey]}</span>
-            </button>
+        {/* Sort + collapse bar */}
+        <div className="px-3 pt-2 pb-1 relative flex items-center justify-between">
+          <button
+            onClick={() => setShowSortMenu((v) => !v)}
+            disabled={baseFilms.length < 2}
+            className="flex items-center gap-1.5 text-gray-400 hover:text-white disabled:opacity-40 disabled:cursor-default text-xs transition-colors"
+          >
+            <ArrowUpDown size={11} />
+            <span>{SORT_LABELS[sortKey]}</span>
+          </button>
 
-            {showSortMenu && (
-              <div className="absolute left-3 top-full mt-1 z-30 bg-gray-800 border border-gray-600 rounded-lg shadow-xl py-1 min-w-36">
-                {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => { setSortKey(key); setShowSortMenu(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
-                      sortKey === key
-                        ? 'text-white bg-blue-600/40'
-                        : 'text-gray-300 hover:bg-gray-700'
-                    }`}
-                  >
-                    {SORT_LABELS[key]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+          <button
+            onClick={() => setCollapsed((v) => !v)}
+            className="text-gray-500 hover:text-white transition-colors p-0.5"
+            title={collapsed ? 'Expand films' : 'Collapse films'}
+          >
+            {collapsed ? <ChevronsUpDown size={13} /> : <ChevronsDownUp size={13} />}
+          </button>
+
+          {showSortMenu && (
+            <div className="absolute left-3 top-full mt-1 z-30 bg-gray-800 border border-gray-600 rounded-lg shadow-xl py-1 min-w-36">
+              {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => { setSortKey(key); setShowSortMenu(false); }}
+                  className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${
+                    sortKey === key
+                      ? 'text-white bg-blue-600/40'
+                      : 'text-gray-300 hover:bg-gray-700'
+                  }`}
+                >
+                  {SORT_LABELS[key]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="px-3 pb-2 space-y-2 flex-1">
           {films.length === 0 && (
@@ -206,7 +214,7 @@ export function Sidebar({ switchToCode }: SidebarProps) {
             </div>
           )}
           {films.map((film) => (
-            <FilmCard key={film.id} film={film} />
+            <FilmCard key={film.id} film={film} collapsed={collapsed} />
           ))}
 
           <FilmSearch />
