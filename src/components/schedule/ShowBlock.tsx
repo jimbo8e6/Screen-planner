@@ -18,6 +18,13 @@ interface Props {
   onShowClick: (showId: string) => void;
 }
 
+function lightenHex(hex: string, amount: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${Math.round(r + (255 - r) * amount)}, ${Math.round(g + (255 - g) * amount)}, ${Math.round(b + (255 - b) * amount)})`;
+}
+
 const CATEGORY_COLORS: Record<string, string> = {
   'film-club':     '#B91C1C',
   'cine-circle':   '#6D28D9',
@@ -94,8 +101,10 @@ export function ShowBlock({ show, film, zoom, timelineStart, isSelected, multiSe
       style={{
         left,
         width: Math.max(width, 24),
-        backgroundColor: hexToRgba(blockColor, show.isSenior ? 0.9 : 0.75),
-        borderLeft: `3px solid ${blockColor}`,
+        backgroundColor: show.isOpen
+          ? lightenHex(blockColor, 0.45)
+          : hexToRgba(blockColor, show.isSenior ? 0.9 : 0.75),
+        borderLeft: `3px solid ${show.isOpen ? lightenHex(blockColor, 0.2) : blockColor}`,
         outline: isSelected ? `2px solid white` : undefined,
         outlineOffset: isSelected ? '-2px' : undefined,
         cursor: canDrag ? 'grab' : 'default',

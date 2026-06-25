@@ -35,6 +35,7 @@ interface State {
   addFixedShow: (show: Omit<Show, 'id'>) => void;
   removeShow: (id: string) => void;
   moveShow: (id: string, screen: ScreenNumber, startMinute: number) => void;
+  openSessions: (showIds: string[]) => void;
 
   autoSchedule: () => void;
   clearGeneratedShows: () => void;
@@ -126,6 +127,13 @@ export const useStore = create<State>()(
         set((s) => ({
           shows: s.shows.map((sh) =>
             sh.id === id ? { ...sh, screen, startMinute, isFixed: true } : sh
+          ),
+        })),
+
+      openSessions: (showIds) =>
+        set((s) => ({
+          shows: s.shows.map((sh) =>
+            showIds.includes(sh.id) ? { ...sh, isOpen: true } : sh
           ),
         })),
 

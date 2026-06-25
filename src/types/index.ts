@@ -45,6 +45,7 @@ export interface Show {
   startMinute: number; // minutes from midnight
   isFixed: boolean;
   isSenior: boolean;
+  isOpen?: boolean;
   screeningType?: ScreeningType; // badge shown on the timeline block
 }
 

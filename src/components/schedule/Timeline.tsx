@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock } from 'lucide-react';
 import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
 import { ShowDetailModal } from './ShowDetailModal';
+import { OpenSessionsModal } from '../modals/OpenSessionsModal';
 
 const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
@@ -23,6 +24,7 @@ export function Timeline() {
   const shows = useStore((s) => s.shows);
   const colorMode = useStore((s) => s.colorMode);
   const setColorMode = useStore((s) => s.setColorMode);
+  const openSessions = useStore((s) => s.openSessions);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [detailShowId, setDetailShowId] = useState<string | null>(null);
@@ -40,6 +42,15 @@ export function Timeline() {
   };
 
   const clearSelection = () => setSelectedShowIds([]);
+  const [openSessionsModal, setOpenSessionsModal] = useState(false);
+
+  // All show IDs in the current week (for "open all")
+  const weekShowIds = useMemo(() => {
+    const dates = Array.from({ length: 7 }, (_, i) =>
+      format(addDays(new Date(weekStart), i), 'yyyy-MM-dd')
+    );
+    return shows.filter((s) => dates.includes(s.date)).map((s) => s.id);
+  }, [shows, weekStart]);
 
   const currentDate = format(
     addDays(new Date(weekStart), selectedDay),
@@ -190,10 +201,39 @@ export function Timeline() {
         </div>
       </div>
 
+      {/* Open Sessions bar */}
+      <div className="flex-shrink-0 border-t border-gray-700 bg-gray-800 px-3 py-2 flex items-center gap-3">
+        <button
+          onClick={() => setOpenSessionsModal(true)}
+          disabled={weekShowIds.length === 0}
+          className="flex items-center gap-1.5 bg-green-700/80 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs rounded py-1.5 px-3 transition-colors font-medium"
+        >
+          <Unlock size={13} />
+          Open Sessions
+        </button>
+        {selectedShowIds.length > 0 && (
+          <span className="text-gray-400 text-xs">
+            {selectedShowIds.length} show{selectedShowIds.length !== 1 ? 's' : ''} selected
+          </span>
+        )}
+      </div>
+
       {detailShowId && (
         <ShowDetailModal
           showId={detailShowId}
           onClose={() => setDetailShowId(null)}
+        />
+      )}
+
+      {openSessionsModal && (
+        <OpenSessionsModal
+          mode={selectedShowIds.length > 0 ? 'selected' : 'all'}
+          weekStart={weekStart}
+          selectedCount={selectedShowIds.length}
+          onConfirm={() => {
+            openSessions(selectedShowIds.length > 0 ? selectedShowIds : weekShowIds);
+          }}
+          onClose={() => setOpenSessionsModal(false)}
         />
       )}
     </div>
