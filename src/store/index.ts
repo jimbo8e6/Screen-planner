@@ -31,6 +31,8 @@ interface State {
 
   addFilm: (film: Omit<Film, 'id' | 'color' | 'terms' | 'isSeniorFilm'>) => void;
   removeFilm: (id: string) => void;
+  archiveFilm: (id: string) => void;
+  restoreFilm: (id: string) => void;
   updateFilmTerms: (id: string, terms: FilmTerms) => void;
   toggleSeniorFilm: (id: string) => void;
   setSpecialScreening: (id: string, screening: SpecialScreening | undefined) => void;
@@ -103,6 +105,16 @@ export const useStore = create<State>()(
         set((s) => ({
           films: s.films.filter((f) => f.id !== id),
           shows: s.shows.filter((sh) => sh.filmId !== id),
+        })),
+
+      archiveFilm: (id) =>
+        set((s) => ({
+          films: s.films.map((f) => f.id === id ? { ...f, isArchived: true } : f),
+        })),
+
+      restoreFilm: (id) =>
+        set((s) => ({
+          films: s.films.map((f) => f.id === id ? { ...f, isArchived: false } : f),
         })),
 
       updateFilmTerms: (id, terms) =>

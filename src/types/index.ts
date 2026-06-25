@@ -34,6 +34,7 @@ export interface Film {
   color: string;
   terms: FilmTerms;
   isSeniorFilm: boolean;
+  isArchived?: boolean;
   specialScreening?: SpecialScreening;
 }
 

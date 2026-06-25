@@ -8,11 +8,12 @@ import { RegularShowModal } from '../modals/RegularShowModal';
 import { ApiKeyModal } from '../modals/ApiKeyModal';
 import { SyncModal } from '../modals/SyncModal';
 import { SessionProperties } from './SessionProperties';
+import { FilmArchive } from '../films/FilmArchive';
 import { exportSchedulePdf } from '../../utils/exportPdf';
 import { supabase } from '../../lib/supabase';
 import type { Film } from '../../types';
 
-type SidebarTab = 'films' | 'properties';
+type SidebarTab = 'films' | 'properties' | 'archive';
 
 // These preset IDs must stay hidden from the main films list
 const PRESET_IDS = new Set([
@@ -83,7 +84,12 @@ export function Sidebar({ switchToCode }: SidebarProps) {
   }, [focusedShowId]);
 
   const baseFilms = useMemo(
-    () => allFilms.filter((f) => !PRESET_IDS.has(f.id)),
+    () => allFilms.filter((f) => !PRESET_IDS.has(f.id) && !f.isArchived),
+    [allFilms]
+  );
+
+  const archivedCount = useMemo(
+    () => allFilms.filter((f) => !PRESET_IDS.has(f.id) && f.isArchived).length,
     [allFilms]
   );
 
@@ -147,17 +153,22 @@ export function Sidebar({ switchToCode }: SidebarProps) {
 
       {/* Tabs */}
       <div className="flex border-b border-gray-700 flex-shrink-0">
-        {(['films', 'properties'] as SidebarTab[]).map((tab) => (
+        {(['films', 'properties', 'archive'] as SidebarTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 text-xs font-medium capitalize transition-colors border-b-2 -mb-px ${
+            className={`flex-1 py-2 text-xs font-medium transition-colors border-b-2 -mb-px relative ${
               activeTab === tab
                 ? 'text-white border-blue-500'
                 : 'text-gray-400 border-transparent hover:text-white'
             }`}
           >
-            {tab === 'films' ? 'Films' : 'Properties'}
+            {tab === 'films' ? 'Films' : tab === 'properties' ? 'Properties' : 'Archive'}
+            {tab === 'archive' && archivedCount > 0 && (
+              <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-600 text-gray-300 text-xs leading-none">
+                {archivedCount}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -224,6 +235,11 @@ export function Sidebar({ switchToCode }: SidebarProps) {
       {/* Properties tab */}
       <div className={`flex-1 min-h-0 flex flex-col ${activeTab !== 'properties' ? 'hidden' : ''}`}>
         <SessionProperties />
+      </div>
+
+      {/* Archive tab */}
+      <div className={`flex-1 min-h-0 flex flex-col ${activeTab !== 'archive' ? 'hidden' : ''}`}>
+        <FilmArchive />
       </div>
 
       {/* Footer */}

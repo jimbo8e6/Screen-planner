@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, ChevronDown, ChevronUp, X, GripVertical } from 'lucide-react';
+import { Archive, ChevronDown, ChevronUp, X, GripVertical } from 'lucide-react';
 import { useStore } from '../../store';
 import { IMG_BASE } from '../../utils/tmdb';
 import { SCREENING_TYPES } from '../../utils/screeningTypes';
@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function FilmCard({ film, collapsed = false }: Props) {
-  const removeFilm = useStore((s) => s.removeFilm);
+  const archiveFilm = useStore((s) => s.archiveFilm);
   const updateFilmTerms = useStore((s) => s.updateFilmTerms);
   const setSpecialScreening = useStore((s) => s.setSpecialScreening);
   const { startDrag } = useDragContext();
@@ -90,10 +90,11 @@ export function FilmCard({ film, collapsed = false }: Props) {
         </div>
         <p className="flex-1 text-white text-xs truncate">{film.title}</p>
         <button
-          onClick={() => removeFilm(film.id)}
-          className="flex-shrink-0 text-gray-600 hover:text-red-400 transition-colors p-0.5"
+          onClick={() => archiveFilm(film.id)}
+          className="flex-shrink-0 text-gray-600 hover:text-yellow-400 transition-colors p-0.5"
+          title="Archive film"
         >
-          <Trash2 size={11} />
+          <Archive size={11} />
         </button>
       </div>
     );
@@ -160,8 +161,12 @@ export function FilmCard({ film, collapsed = false }: Props) {
           <button onClick={() => setExpanded((e) => !e)} className="p-1 text-gray-400 hover:text-white transition-colors">
             {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
-          <button onClick={() => removeFilm(film.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors">
-            <Trash2 size={12} />
+          <button
+            onClick={() => archiveFilm(film.id)}
+            className="p-1 text-gray-500 hover:text-yellow-400 transition-colors"
+            title="Archive film"
+          >
+            <Archive size={12} />
           </button>
         </div>
       </div>
