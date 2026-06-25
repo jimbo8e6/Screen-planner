@@ -16,6 +16,7 @@ export function SessionProperties() {
   const shows = useStore((s) => s.shows);
   const films = useStore((s) => s.films);
   const weekStart = useStore((s) => s.weekStart);
+  const priceCards = useStore((s) => s.priceCards);
   const openSessions = useStore((s) => s.openSessions);
   const closeSession = useStore((s) => s.closeSession);
   const updateShowProperties = useStore((s) => s.updateShowProperties);
@@ -24,16 +25,13 @@ export function SessionProperties() {
   const film = show ? films.find((f) => f.id === show.filmId) ?? null : null;
 
   const [ticketsSold, setTicketsSold] = useState('');
-  const [priceCard, setPriceCard] = useState('');
 
   // Sync local inputs whenever the focused show changes
   useEffect(() => {
     if (show) {
       setTicketsSold(show.ticketsSold !== undefined ? String(show.ticketsSold) : '');
-      setPriceCard(show.priceCard ?? '');
     } else {
       setTicketsSold('');
-      setPriceCard('');
     }
   }, [focusedShowId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -66,8 +64,8 @@ export function SessionProperties() {
     updateShowProperties(show.id, { ticketsSold: isNaN(n) ? undefined : n });
   };
 
-  const savePriceCard = () => {
-    updateShowProperties(show.id, { priceCard: priceCard.trim() || undefined });
+  const handlePriceCardChange = (value: string) => {
+    updateShowProperties(show.id, { priceCard: value || undefined });
   };
 
   return (
@@ -119,14 +117,19 @@ export function SessionProperties() {
         <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">
           Price Card
         </label>
-        <input
-          type="text"
-          value={priceCard}
-          onChange={(e) => setPriceCard(e.target.value)}
-          onBlur={savePriceCard}
-          placeholder="e.g. Standard £10.50"
-          className="w-full bg-gray-800 text-white text-sm rounded-lg px-3 py-2 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-600"
-        />
+        <select
+          value={show.priceCard ?? ''}
+          onChange={(e) => handlePriceCardChange(e.target.value)}
+          className="w-full bg-gray-800 text-white text-sm rounded-lg px-3 py-2 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          <option value="">— Select price card —</option>
+          {priceCards.map((pc) => (
+            <option key={pc.id} value={pc.id}>{pc.name}</option>
+          ))}
+        </select>
+        {priceCards.length === 0 && (
+          <p className="text-gray-600 text-xs">No price cards created yet.</p>
+        )}
       </div>
     </div>
   );

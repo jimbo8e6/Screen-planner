@@ -17,6 +17,7 @@ interface State {
   syncCode: string;
   syncStatus: 'idle' | 'syncing' | 'synced' | 'error';
   focusedShowId: string | null;
+  priceCards: { id: string; name: string }[];
 
   setTmdbApiKey: (key: string) => void;
   setZoom: (z: number) => void;
@@ -41,6 +42,9 @@ interface State {
   closeSession: (showId: string) => void;
   updateShowProperties: (showId: string, props: { ticketsSold?: number; priceCard?: string }) => void;
 
+  addPriceCard: (name: string) => void;
+  removePriceCard: (id: string) => void;
+
   autoSchedule: () => void;
   clearGeneratedShows: () => void;
 }
@@ -62,6 +66,7 @@ export const useStore = create<State>()(
       syncCode: (() => { try { return localStorage.getItem('cinema-sync-code') ?? ''; } catch { return ''; } })(),
       syncStatus: 'idle' as const,
       focusedShowId: null,
+      priceCards: [],
 
       setTmdbApiKey: (key) => {
         // Persist API key under a stable key so it survives store version resets
@@ -157,6 +162,16 @@ export const useStore = create<State>()(
           ),
         })),
 
+      addPriceCard: (name) =>
+        set((s) => ({
+          priceCards: [...s.priceCards, { id: nanoid(), name: name.trim() }],
+        })),
+
+      removePriceCard: (id) =>
+        set((s) => ({
+          priceCards: s.priceCards.filter((pc) => pc.id !== id),
+        })),
+
       autoSchedule: () => {
         const { weekStart, films, shows } = get();
         const fixedShows = shows.filter((s) => s.isFixed || s.isSenior);
@@ -192,6 +207,7 @@ export const useStore = create<State>()(
         tmdbApiKey: s.tmdbApiKey,
         zoom: s.zoom,
         colorMode: s.colorMode,
+        priceCards: s.priceCards,
       }),
     }
   )
