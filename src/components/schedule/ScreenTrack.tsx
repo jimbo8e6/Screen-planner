@@ -9,8 +9,10 @@ interface Props {
   date: string;
   zoom: number;
   timelineStart: number;
-  selectedShowId: string | null;
-  onShowSelect: (showId: string | null) => void;
+  selectedShowIds: string[];
+  multiSelectMode: boolean;
+  onShowSelect: (showId: string, toggle: boolean) => void;
+  onClearSelection: () => void;
   onShowClick: (showId: string) => void;
 }
 
@@ -20,7 +22,7 @@ const SCREEN_LABELS: Record<ScreenNumber, string> = {
   3: 'Screen 3',
 };
 
-export function ScreenTrack({ screen, date, zoom, timelineStart, selectedShowId, onShowSelect, onShowClick }: Props) {
+export function ScreenTrack({ screen, date, zoom, timelineStart, selectedShowIds, multiSelectMode, onShowSelect, onClearSelection, onShowClick }: Props) {
   const allShows = useStore((s) => s.shows);
   const films = useStore((s) => s.films);
   const { activeTarget } = useDragContext();
@@ -57,7 +59,7 @@ export function ScreenTrack({ screen, date, zoom, timelineStart, selectedShowId,
           isHovering ? 'bg-blue-900/30' : 'bg-gray-800'
         }`}
         style={isHovering ? { outline: '2px solid #3b82f6', outlineOffset: '-2px' } : undefined}
-        onClick={() => onShowSelect(null)}
+        onClick={() => onClearSelection()}
       >
         {/* Hour grid lines */}
         {Array.from({ length: 24 }, (_, h) => {
@@ -92,7 +94,8 @@ export function ScreenTrack({ screen, date, zoom, timelineStart, selectedShowId,
               film={film}
               zoom={zoom}
               timelineStart={timelineStart}
-              isSelected={selectedShowId === show.id}
+              isSelected={selectedShowIds.includes(show.id)}
+              multiSelectMode={multiSelectMode}
               onSelect={onShowSelect}
               onShowClick={onShowClick}
             />

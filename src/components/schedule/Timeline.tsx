@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers } from 'lucide-react';
 import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
@@ -26,7 +26,20 @@ export function Timeline() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [detailShowId, setDetailShowId] = useState<string | null>(null);
-  const [selectedShowId, setSelectedShowId] = useState<string | null>(null);
+  const [selectedShowIds, setSelectedShowIds] = useState<string[]>([]);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+
+  const handleShowSelect = (showId: string, toggle: boolean) => {
+    if (toggle) {
+      setSelectedShowIds((prev) =>
+        prev.includes(showId) ? prev.filter((id) => id !== showId) : [...prev, showId]
+      );
+    } else {
+      setSelectedShowIds([showId]);
+    }
+  };
+
+  const clearSelection = () => setSelectedShowIds([]);
 
   const currentDate = format(
     addDays(new Date(weekStart), selectedDay),
@@ -69,7 +82,7 @@ export function Timeline() {
             return (
               <button
                 key={name}
-                onClick={() => { setSelectedDay(i); setSelectedShowId(null); }}
+                onClick={() => { setSelectedDay(i); clearSelection(); }}
                 className={`flex-1 flex flex-col items-center py-1 px-1 rounded text-xs transition-colors ${
                   isSelected
                     ? 'bg-blue-600 text-white'
@@ -93,7 +106,7 @@ export function Timeline() {
         </div>
 
         {/* Colour mode toggle */}
-        <div className="flex items-center border-l border-gray-700 pl-2">
+        <div className="flex items-center border-l border-gray-700 pl-2 gap-1">
           <button
             onClick={() => setColorMode(colorMode === 'per-film' ? 'by-category' : 'per-film')}
             className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
@@ -104,6 +117,20 @@ export function Timeline() {
             title={colorMode === 'per-film' ? 'Switch to category colours' : 'Switch to per-film colours'}
           >
             <Palette size={14} />
+          </button>
+          <button
+            onClick={() => { setMultiSelectMode((v) => !v); if (multiSelectMode) clearSelection(); }}
+            className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+              multiSelectMode
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-white'
+            }`}
+            title={multiSelectMode ? 'Exit multi-select' : 'Multi-select (or Ctrl/⌘+click)'}
+          >
+            <Layers size={14} />
+            {selectedShowIds.length > 1 && (
+              <span className="font-medium">{selectedShowIds.length}</span>
+            )}
           </button>
         </div>
 
@@ -153,8 +180,10 @@ export function Timeline() {
               date={currentDate}
               zoom={zoom}
               timelineStart={TIMELINE_START}
-              selectedShowId={selectedShowId}
-              onShowSelect={setSelectedShowId}
+              selectedShowIds={selectedShowIds}
+              multiSelectMode={multiSelectMode}
+              onShowSelect={handleShowSelect}
+              onClearSelection={clearSelection}
               onShowClick={setDetailShowId}
             />
           ))}

@@ -13,7 +13,8 @@ interface Props {
   zoom: number;
   timelineStart: number;
   isSelected: boolean;
-  onSelect: (showId: string) => void;
+  multiSelectMode: boolean;
+  onSelect: (showId: string, toggle: boolean) => void;
   onShowClick: (showId: string) => void;
 }
 
@@ -26,7 +27,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   standard:        '#3B82F6',
 };
 
-export function ShowBlock({ show, film, zoom, timelineStart, isSelected, onSelect, onShowClick }: Props) {
+export function ShowBlock({ show, film, zoom, timelineStart, isSelected, multiSelectMode, onSelect, onShowClick }: Props) {
   const removeShow = useStore((s) => s.removeShow);
   const colorMode = useStore((s) => s.colorMode);
   const [hovered, setHovered] = useState(false);
@@ -77,12 +78,13 @@ export function ShowBlock({ show, film, zoom, timelineStart, isSelected, onSelec
     }
   };
 
-  const handlePointerUp = (_e: React.PointerEvent) => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     if (!pointerRef.current) return;
     const wasDragging = pointerRef.current.dragging;
     pointerRef.current = null;
     if (!wasDragging) {
-      onSelect(show.id);
+      const toggle = e.ctrlKey || e.metaKey || multiSelectMode;
+      onSelect(show.id, toggle);
     }
   };
 
