@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { X, Lock } from 'lucide-react';
+import { X, Lock, Plus } from 'lucide-react';
 import { useStore } from '../../store';
 import { minutesToTimeString, showDurationMinutes } from '../../utils/time';
 import type { Show, Film } from '../../types';
@@ -12,6 +12,8 @@ interface Props {
   film: Film;
   zoom: number;
   timelineStart: number;
+  isSelected: boolean;
+  onSelect: (showId: string) => void;
   onShowClick: (showId: string) => void;
 }
 
@@ -24,11 +26,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   standard:        '#3B82F6',
 };
 
-export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Props) {
+export function ShowBlock({ show, film, zoom, timelineStart, isSelected, onSelect, onShowClick }: Props) {
   const removeShow = useStore((s) => s.removeShow);
   const colorMode = useStore((s) => s.colorMode);
   const [hovered, setHovered] = useState(false);
   const { startDrag } = useDragContext();
+
+  const showControls = isSelected || hovered;
 
   const categoryKey =
     show.screeningType ??
@@ -78,7 +82,7 @@ export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Prop
     const wasDragging = pointerRef.current.dragging;
     pointerRef.current = null;
     if (!wasDragging) {
-      onShowClick(show.id);
+      onSelect(show.id);
     }
   };
 
@@ -90,8 +94,10 @@ export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Prop
         width: Math.max(width, 24),
         backgroundColor: hexToRgba(blockColor, show.isSenior ? 0.9 : 0.75),
         borderLeft: `3px solid ${blockColor}`,
+        outline: isSelected ? `2px solid white` : undefined,
+        outlineOffset: isSelected ? '-2px' : undefined,
         cursor: canDrag ? 'grab' : 'default',
-        zIndex: hovered ? 10 : 1,
+        zIndex: isSelected ? 15 : hovered ? 10 : 1,
         touchAction: 'none',
       }}
       onMouseEnter={() => setHovered(true)}
@@ -130,18 +136,34 @@ export function ShowBlock({ show, film, zoom, timelineStart, onShowClick }: Prop
               </span>
             )}
           </p>
-          {hovered && (
-            <button
-              className="flex-shrink-0 text-white/60 hover:text-white transition-colors"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.stopPropagation();
-                removeShow(show.id);
-              }}
-            >
-              <X size={10} />
-            </button>
-          )}
+          <div className="flex items-center gap-0.5 flex-shrink-0">
+            {showControls && (
+              <button
+                className="text-white/80 hover:text-white bg-white/20 hover:bg-white/30 rounded transition-colors p-0.5"
+                title="Show details"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShowClick(show.id);
+                }}
+              >
+                <Plus size={10} />
+              </button>
+            )}
+            {hovered && (
+              <button
+                className="text-white/60 hover:text-white transition-colors"
+                title="Remove show"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeShow(show.id);
+                }}
+              >
+                <X size={10} />
+              </button>
+            )}
+          </div>
         </div>
         {width > 70 && (
           <p className="text-white/70 text-xs">

@@ -9,6 +9,8 @@ interface Props {
   date: string;
   zoom: number;
   timelineStart: number;
+  selectedShowId: string | null;
+  onShowSelect: (showId: string | null) => void;
   onShowClick: (showId: string) => void;
 }
 
@@ -18,7 +20,7 @@ const SCREEN_LABELS: Record<ScreenNumber, string> = {
   3: 'Screen 3',
 };
 
-export function ScreenTrack({ screen, date, zoom, timelineStart, onShowClick }: Props) {
+export function ScreenTrack({ screen, date, zoom, timelineStart, selectedShowId, onShowSelect, onShowClick }: Props) {
   const allShows = useStore((s) => s.shows);
   const films = useStore((s) => s.films);
   const { activeTarget } = useDragContext();
@@ -55,6 +57,7 @@ export function ScreenTrack({ screen, date, zoom, timelineStart, onShowClick }: 
           isHovering ? 'bg-blue-900/30' : 'bg-gray-800'
         }`}
         style={isHovering ? { outline: '2px solid #3b82f6', outlineOffset: '-2px' } : undefined}
+        onClick={() => onShowSelect(null)}
       >
         {/* Hour grid lines */}
         {Array.from({ length: 24 }, (_, h) => {
@@ -89,6 +92,8 @@ export function ScreenTrack({ screen, date, zoom, timelineStart, onShowClick }: 
               film={film}
               zoom={zoom}
               timelineStart={timelineStart}
+              isSelected={selectedShowId === show.id}
+              onSelect={onShowSelect}
               onShowClick={onShowClick}
             />
           );

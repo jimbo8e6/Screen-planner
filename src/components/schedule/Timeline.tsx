@@ -26,6 +26,7 @@ export function Timeline() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [detailShowId, setDetailShowId] = useState<string | null>(null);
+  const [selectedShowId, setSelectedShowId] = useState<string | null>(null);
 
   const currentDate = format(
     addDays(new Date(weekStart), selectedDay),
@@ -68,7 +69,7 @@ export function Timeline() {
             return (
               <button
                 key={name}
-                onClick={() => setSelectedDay(i)}
+                onClick={() => { setSelectedDay(i); setSelectedShowId(null); }}
                 className={`flex-1 flex flex-col items-center py-1 px-1 rounded text-xs transition-colors ${
                   isSelected
                     ? 'bg-blue-600 text-white'
@@ -152,6 +153,8 @@ export function Timeline() {
               date={currentDate}
               zoom={zoom}
               timelineStart={TIMELINE_START}
+              selectedShowId={selectedShowId}
+              onShowSelect={setSelectedShowId}
               onShowClick={setDetailShowId}
             />
           ))}
