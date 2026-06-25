@@ -105,6 +105,7 @@ export function ShowBlock({ show, film, zoom, timelineStart, isSelected, onSelec
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* Trailers/ads buffer at front */}
