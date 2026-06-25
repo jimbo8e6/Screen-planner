@@ -16,6 +16,7 @@ interface State {
   colorMode: 'per-film' | 'by-category';
   syncCode: string;
   syncStatus: 'idle' | 'syncing' | 'synced' | 'error';
+  focusedShowId: string | null;
 
   setTmdbApiKey: (key: string) => void;
   setZoom: (z: number) => void;
@@ -23,6 +24,7 @@ interface State {
   setColorMode: (m: 'per-film' | 'by-category') => void;
   setSyncCode: (code: string) => void;
   setSyncStatus: (s: 'idle' | 'syncing' | 'synced' | 'error') => void;
+  setFocusedShowId: (id: string | null) => void;
   nextWeek: () => void;
   prevWeek: () => void;
 
@@ -36,6 +38,8 @@ interface State {
   removeShow: (id: string) => void;
   moveShow: (id: string, screen: ScreenNumber, startMinute: number) => void;
   openSessions: (showIds: string[]) => void;
+  closeSession: (showId: string) => void;
+  updateShowProperties: (showId: string, props: { ticketsSold?: number; priceCard?: string }) => void;
 
   autoSchedule: () => void;
   clearGeneratedShows: () => void;
@@ -57,6 +61,7 @@ export const useStore = create<State>()(
       colorMode: 'per-film',
       syncCode: (() => { try { return localStorage.getItem('cinema-sync-code') ?? ''; } catch { return ''; } })(),
       syncStatus: 'idle' as const,
+      focusedShowId: null,
 
       setTmdbApiKey: (key) => {
         // Persist API key under a stable key so it survives store version resets
@@ -71,6 +76,7 @@ export const useStore = create<State>()(
         set({ syncCode: code });
       },
       setSyncStatus: (s) => set({ syncStatus: s }),
+      setFocusedShowId: (id) => set({ focusedShowId: id }),
 
       nextWeek: () =>
         set((s) => ({ weekStart: fridayOf(addWeeks(new Date(s.weekStart), 1)) })),
@@ -134,6 +140,20 @@ export const useStore = create<State>()(
         set((s) => ({
           shows: s.shows.map((sh) =>
             showIds.includes(sh.id) ? { ...sh, isOpen: true } : sh
+          ),
+        })),
+
+      closeSession: (showId) =>
+        set((s) => ({
+          shows: s.shows.map((sh) =>
+            sh.id === showId ? { ...sh, isOpen: false } : sh
+          ),
+        })),
+
+      updateShowProperties: (showId, props) =>
+        set((s) => ({
+          shows: s.shows.map((sh) =>
+            sh.id === showId ? { ...sh, ...props } : sh
           ),
         })),
 

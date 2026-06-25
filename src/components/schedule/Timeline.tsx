@@ -25,6 +25,7 @@ export function Timeline() {
   const colorMode = useStore((s) => s.colorMode);
   const setColorMode = useStore((s) => s.setColorMode);
   const openSessions = useStore((s) => s.openSessions);
+  const setFocusedShowId = useStore((s) => s.setFocusedShowId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [detailShowId, setDetailShowId] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export function Timeline() {
   const [multiSelectMode, setMultiSelectMode] = useState(false);
 
   const handleShowSelect = (showId: string, toggle: boolean) => {
+    setFocusedShowId(showId);
     if (toggle) {
       setSelectedShowIds((prev) =>
         prev.includes(showId) ? prev.filter((id) => id !== showId) : [...prev, showId]
@@ -41,7 +43,10 @@ export function Timeline() {
     }
   };
 
-  const clearSelection = () => setSelectedShowIds([]);
+  const clearSelection = () => {
+    setSelectedShowIds([]);
+    setFocusedShowId(null);
+  };
   const [openSessionsModal, setOpenSessionsModal] = useState(false);
 
   // All show IDs in the current week (for "open all")

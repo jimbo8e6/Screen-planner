@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown, Cloud } from 'lucide-react';
 import { useStore } from '../../store';
 import { FilmCard } from '../films/FilmCard';
@@ -7,9 +7,12 @@ import { EventCinemaModal } from '../modals/EventCinemaModal';
 import { RegularShowModal } from '../modals/RegularShowModal';
 import { ApiKeyModal } from '../modals/ApiKeyModal';
 import { SyncModal } from '../modals/SyncModal';
+import { SessionProperties } from './SessionProperties';
 import { exportSchedulePdf } from '../../utils/exportPdf';
 import { supabase } from '../../lib/supabase';
 import type { Film } from '../../types';
+
+type SidebarTab = 'films' | 'properties';
 
 // These preset IDs must stay hidden from the main films list
 const PRESET_IDS = new Set([
@@ -62,15 +65,21 @@ export function Sidebar({ switchToCode }: SidebarProps) {
   const autoSchedule = useStore((s) => s.autoSchedule);
   const clearGeneratedShows = useStore((s) => s.clearGeneratedShows);
   const apiKey = useStore((s) => s.tmdbApiKey);
-
   const syncStatus = useStore((s) => s.syncStatus);
+  const focusedShowId = useStore((s) => s.focusedShowId);
 
+  const [activeTab, setActiveTab] = useState<SidebarTab>('films');
   const [showEventModal, setShowEventModal] = useState(false);
   const [showRegularModal, setShowRegularModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('added');
   const [showSortMenu, setShowSortMenu] = useState(false);
+
+  // Auto-switch to Properties tab when a show gets focused
+  useEffect(() => {
+    if (focusedShowId) setActiveTab('properties');
+  }, [focusedShowId]);
 
   const baseFilms = useMemo(
     () => allFilms.filter((f) => !PRESET_IDS.has(f.id)),
@@ -135,8 +144,25 @@ export function Sidebar({ switchToCode }: SidebarProps) {
         </button>
       </div>
 
-      {/* Films list */}
-      <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+      {/* Tabs */}
+      <div className="flex border-b border-gray-700 flex-shrink-0">
+        {(['films', 'properties'] as SidebarTab[]).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-2 text-xs font-medium capitalize transition-colors border-b-2 -mb-px ${
+              activeTab === tab
+                ? 'text-white border-blue-500'
+                : 'text-gray-400 border-transparent hover:text-white'
+            }`}
+          >
+            {tab === 'films' ? 'Films' : 'Properties'}
+          </button>
+        ))}
+      </div>
+
+      {/* Films tab */}
+      <div className={`flex-1 overflow-y-auto min-h-0 flex flex-col ${activeTab !== 'films' ? 'hidden' : ''}`}>
         {/* Sort bar */}
         {baseFilms.length > 1 && (
           <div className="px-3 pt-2 pb-1 relative">
@@ -185,6 +211,11 @@ export function Sidebar({ switchToCode }: SidebarProps) {
 
           <FilmSearch />
         </div>
+      </div>
+
+      {/* Properties tab */}
+      <div className={`flex-1 min-h-0 flex flex-col ${activeTab !== 'properties' ? 'hidden' : ''}`}>
+        <SessionProperties />
       </div>
 
       {/* Footer */}

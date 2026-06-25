@@ -46,6 +46,8 @@ export interface Show {
   isFixed: boolean;
   isSenior: boolean;
   isOpen?: boolean;
+  ticketsSold?: number;
+  priceCard?: string;
   screeningType?: ScreeningType; // badge shown on the timeline block
 }
 
