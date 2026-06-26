@@ -38,6 +38,7 @@ export function ShowBlock({ show, film, zoom, timelineStart, isSelected, multiSe
   const removeShow = useStore((s) => s.removeShow);
   const colorMode = useStore((s) => s.colorMode);
   const screenCapacities = useStore((s) => s.screenCapacities);
+  const ticketCounts = useStore((s) => s.ticketCounts);
   const [hovered, setHovered] = useState(false);
   const { startDrag } = useDragContext();
 
@@ -188,7 +189,7 @@ export function ShowBlock({ show, film, zoom, timelineStart, isSelected, multiSe
       {/* Capacity progress bar */}
       {(() => {
         const capacity = screenCapacities[show.screen];
-        const sold = show.ticketsSold ?? 0;
+        const sold = ticketCounts[show.id] ?? 0;
         if (capacity <= 0 || sold <= 0) return null;
         const pct = Math.min(sold / capacity, 1);
         const barColor = pct >= 0.9 ? '#EF4444' : pct >= 0.7 ? '#F59E0B' : '#22C55E';
@@ -228,7 +229,7 @@ export function ShowBlock({ show, film, zoom, timelineStart, isSelected, multiSe
           )}
           {(() => {
             const capacity = screenCapacities[show.screen];
-            const sold = show.ticketsSold ?? 0;
+            const sold = ticketCounts[show.id] ?? 0;
             if (capacity <= 0) return null;
             return (
               <p className="text-gray-400 text-xs">

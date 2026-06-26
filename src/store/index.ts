@@ -20,6 +20,8 @@ interface State {
   ticketTypes: TicketType[];
   priceCards: PriceCard[];
   screenCapacities: Record<ScreenNumber, number>;
+  ticketCounts: Record<string, number>;
+  ticketBreakdown: Record<string, Record<string, number>>;
 
   setTmdbApiKey: (key: string) => void;
   setZoom: (z: number) => void;
@@ -55,6 +57,7 @@ interface State {
   removePriceCard: (id: string) => void;
 
   setScreenCapacity: (screen: ScreenNumber, capacity: number) => void;
+  setTicketSalesData: (counts: Record<string, number>, breakdown: Record<string, Record<string, number>>) => void;
 
   autoSchedule: () => void;
   clearGeneratedShows: () => void;
@@ -80,6 +83,8 @@ export const useStore = create<State>()(
       ticketTypes: [],
       priceCards: [],
       screenCapacities: { 1: 0, 2: 0, 3: 0 },
+      ticketCounts: {},
+      ticketBreakdown: {},
 
       setTmdbApiKey: (key) => {
         // Persist API key under a stable key so it survives store version resets
@@ -228,6 +233,9 @@ export const useStore = create<State>()(
         set((s) => ({
           screenCapacities: { ...s.screenCapacities, [screen]: Math.max(0, capacity) },
         })),
+
+      setTicketSalesData: (counts, breakdown) =>
+        set({ ticketCounts: counts, ticketBreakdown: breakdown }),
 
       autoSchedule: () => {
         const { weekStart, films, shows } = get();
