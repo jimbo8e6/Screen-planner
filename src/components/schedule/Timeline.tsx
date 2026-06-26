@@ -1,12 +1,13 @@
 import { useRef, useState, useMemo } from 'react';
 import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock, CreditCard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock, CreditCard, MonitorSpeaker } from 'lucide-react';
 import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
 import { ShowDetailModal } from './ShowDetailModal';
 import { OpenSessionsModal } from '../modals/OpenSessionsModal';
 import { PriceCardModal } from '../modals/PriceCardModal';
+import { ScreenCapacityModal } from '../modals/ScreenCapacityModal';
 
 const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
@@ -50,6 +51,7 @@ export function Timeline() {
   };
   const [openSessionsModal, setOpenSessionsModal] = useState(false);
   const [priceCardModal, setPriceCardModal] = useState(false);
+  const [screenCapacityModal, setScreenCapacityModal] = useState(false);
 
   // All show IDs in the current week (for "open all")
   const weekShowIds = useMemo(() => {
@@ -225,6 +227,13 @@ export function Timeline() {
           <CreditCard size={13} />
           Price Cards
         </button>
+        <button
+          onClick={() => setScreenCapacityModal(true)}
+          className="flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs rounded py-1.5 px-3 transition-colors"
+        >
+          <MonitorSpeaker size={13} />
+          Screens
+        </button>
         {selectedShowIds.length > 0 && (
           <span className="text-gray-400 text-xs ml-auto">
             {selectedShowIds.length} show{selectedShowIds.length !== 1 ? 's' : ''} selected
@@ -241,6 +250,10 @@ export function Timeline() {
 
       {priceCardModal && (
         <PriceCardModal onClose={() => setPriceCardModal(false)} />
+      )}
+
+      {screenCapacityModal && (
+        <ScreenCapacityModal onClose={() => setScreenCapacityModal(false)} />
       )}
 
       {openSessionsModal && (

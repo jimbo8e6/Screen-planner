@@ -19,6 +19,7 @@ interface State {
   focusedShowId: string | null;
   ticketTypes: TicketType[];
   priceCards: PriceCard[];
+  screenCapacities: Record<ScreenNumber, number>;
 
   setTmdbApiKey: (key: string) => void;
   setZoom: (z: number) => void;
@@ -53,6 +54,8 @@ interface State {
   updatePriceCard: (id: string, name: string, ticketTypeIds: string[]) => void;
   removePriceCard: (id: string) => void;
 
+  setScreenCapacity: (screen: ScreenNumber, capacity: number) => void;
+
   autoSchedule: () => void;
   clearGeneratedShows: () => void;
 }
@@ -76,6 +79,7 @@ export const useStore = create<State>()(
       focusedShowId: null,
       ticketTypes: [],
       priceCards: [],
+      screenCapacities: { 1: 0, 2: 0, 3: 0 },
 
       setTmdbApiKey: (key) => {
         // Persist API key under a stable key so it survives store version resets
@@ -220,6 +224,11 @@ export const useStore = create<State>()(
           priceCards: s.priceCards.filter((pc) => pc.id !== id),
         })),
 
+      setScreenCapacity: (screen, capacity) =>
+        set((s) => ({
+          screenCapacities: { ...s.screenCapacities, [screen]: Math.max(0, capacity) },
+        })),
+
       autoSchedule: () => {
         const { weekStart, films, shows } = get();
         const fixedShows = shows.filter((s) => s.isFixed || s.isSenior);
@@ -257,6 +266,7 @@ export const useStore = create<State>()(
         colorMode: s.colorMode,
         ticketTypes: s.ticketTypes,
         priceCards: s.priceCards,
+        screenCapacities: s.screenCapacities,
       }),
     }
   )

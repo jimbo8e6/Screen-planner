@@ -14,6 +14,7 @@ function extractPayload(state: ReturnType<typeof useStore.getState>) {
     colorMode: state.colorMode,
     ticketTypes: state.ticketTypes,
     priceCards: state.priceCards,
+    screenCapacities: state.screenCapacities,
   };
 }
 
