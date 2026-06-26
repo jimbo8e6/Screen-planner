@@ -61,6 +61,18 @@ export interface ScheduleState {
   selectedDay: number;
 }
 
+export interface TicketType {
+  id: string;
+  name: string;  // "Adult", "Child", "Senior", "Meerkat", "Comp" etc.
+  price: number; // in £, e.g. 10.50
+}
+
+export interface PriceCard {
+  id: string;
+  name: string;           // "U/PG/12A", "15", "18" etc.
+  ticketTypeIds: string[];
+}
+
 export interface TMDBSearchResult {
   id: number;
   title: string;

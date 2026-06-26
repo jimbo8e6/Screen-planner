@@ -12,6 +12,7 @@ function extractPayload(state: ReturnType<typeof useStore.getState>) {
     tmdbApiKey: state.tmdbApiKey,
     zoom: state.zoom,
     colorMode: state.colorMode,
+    ticketTypes: state.ticketTypes,
     priceCards: state.priceCards,
   };
 }

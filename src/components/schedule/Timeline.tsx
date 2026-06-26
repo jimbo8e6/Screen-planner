@@ -1,11 +1,12 @@
 import { useRef, useState, useMemo } from 'react';
 import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock, CreditCard } from 'lucide-react';
 import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
 import { ShowDetailModal } from './ShowDetailModal';
 import { OpenSessionsModal } from '../modals/OpenSessionsModal';
+import { PriceCardModal } from '../modals/PriceCardModal';
 
 const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
@@ -48,6 +49,7 @@ export function Timeline() {
     setFocusedShowId(null);
   };
   const [openSessionsModal, setOpenSessionsModal] = useState(false);
+  const [priceCardModal, setPriceCardModal] = useState(false);
 
   // All show IDs in the current week (for "open all")
   const weekShowIds = useMemo(() => {
@@ -206,7 +208,7 @@ export function Timeline() {
         </div>
       </div>
 
-      {/* Open Sessions bar */}
+      {/* Bottom action bar */}
       <div className="flex-shrink-0 border-t border-gray-700 bg-gray-800 px-3 py-2 flex items-center gap-3">
         <button
           onClick={() => setOpenSessionsModal(true)}
@@ -216,8 +218,15 @@ export function Timeline() {
           <Unlock size={13} />
           Open Sessions
         </button>
+        <button
+          onClick={() => setPriceCardModal(true)}
+          className="flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs rounded py-1.5 px-3 transition-colors"
+        >
+          <CreditCard size={13} />
+          Price Cards
+        </button>
         {selectedShowIds.length > 0 && (
-          <span className="text-gray-400 text-xs">
+          <span className="text-gray-400 text-xs ml-auto">
             {selectedShowIds.length} show{selectedShowIds.length !== 1 ? 's' : ''} selected
           </span>
         )}
@@ -228,6 +237,10 @@ export function Timeline() {
           showId={detailShowId}
           onClose={() => setDetailShowId(null)}
         />
+      )}
+
+      {priceCardModal && (
+        <PriceCardModal onClose={() => setPriceCardModal(false)} />
       )}
 
       {openSessionsModal && (

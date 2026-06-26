@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
 import { format, startOfWeek, addWeeks, subWeeks } from 'date-fns';
-import type { Film, Show, ScreenNumber, FilmTerms, SpecialScreening } from '../types';
+import type { Film, Show, ScreenNumber, FilmTerms, SpecialScreening, TicketType, PriceCard } from '../types';
 import { nextColor } from '../utils/colors';
 import { buildSchedule, fillAdditionalScreens } from '../utils/scheduler';
 
@@ -17,7 +17,8 @@ interface State {
   syncCode: string;
   syncStatus: 'idle' | 'syncing' | 'synced' | 'error';
   focusedShowId: string | null;
-  priceCards: { id: string; name: string }[];
+  ticketTypes: TicketType[];
+  priceCards: PriceCard[];
 
   setTmdbApiKey: (key: string) => void;
   setZoom: (z: number) => void;
@@ -44,7 +45,12 @@ interface State {
   closeSession: (showId: string) => void;
   updateShowProperties: (showId: string, props: { ticketsSold?: number; priceCard?: string }) => void;
 
-  addPriceCard: (name: string) => void;
+  addTicketType: (name: string, price: number) => void;
+  updateTicketType: (id: string, name: string, price: number) => void;
+  removeTicketType: (id: string) => void;
+
+  addPriceCard: (name: string, ticketTypeIds: string[]) => void;
+  updatePriceCard: (id: string, name: string, ticketTypeIds: string[]) => void;
   removePriceCard: (id: string) => void;
 
   autoSchedule: () => void;
@@ -68,6 +74,7 @@ export const useStore = create<State>()(
       syncCode: (() => { try { return localStorage.getItem('cinema-sync-code') ?? ''; } catch { return ''; } })(),
       syncStatus: 'idle' as const,
       focusedShowId: null,
+      ticketTypes: [],
       priceCards: [],
 
       setTmdbApiKey: (key) => {
@@ -174,9 +181,38 @@ export const useStore = create<State>()(
           ),
         })),
 
-      addPriceCard: (name) =>
+      addTicketType: (name, price) =>
         set((s) => ({
-          priceCards: [...s.priceCards, { id: nanoid(), name: name.trim() }],
+          ticketTypes: [...s.ticketTypes, { id: nanoid(), name: name.trim(), price }],
+        })),
+
+      updateTicketType: (id, name, price) =>
+        set((s) => ({
+          ticketTypes: s.ticketTypes.map((t) =>
+            t.id === id ? { ...t, name: name.trim(), price } : t
+          ),
+        })),
+
+      removeTicketType: (id) =>
+        set((s) => ({
+          ticketTypes: s.ticketTypes.filter((t) => t.id !== id),
+          // strip from any price cards that reference it
+          priceCards: s.priceCards.map((pc) => ({
+            ...pc,
+            ticketTypeIds: pc.ticketTypeIds.filter((tid) => tid !== id),
+          })),
+        })),
+
+      addPriceCard: (name, ticketTypeIds) =>
+        set((s) => ({
+          priceCards: [...s.priceCards, { id: nanoid(), name: name.trim(), ticketTypeIds }],
+        })),
+
+      updatePriceCard: (id, name, ticketTypeIds) =>
+        set((s) => ({
+          priceCards: s.priceCards.map((pc) =>
+            pc.id === id ? { ...pc, name: name.trim(), ticketTypeIds } : pc
+          ),
         })),
 
       removePriceCard: (id) =>
@@ -219,6 +255,7 @@ export const useStore = create<State>()(
         tmdbApiKey: s.tmdbApiKey,
         zoom: s.zoom,
         colorMode: s.colorMode,
+        ticketTypes: s.ticketTypes,
         priceCards: s.priceCards,
       }),
     }
