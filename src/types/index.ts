@@ -61,6 +61,19 @@ export interface ScheduleState {
   selectedDay: number;
 }
 
+export type SeatCellType = 'gap' | 'standard' | 'dda' | 'unavailable';
+
+export interface SeatPlanRow {
+  label: string;
+  cells: SeatCellType[];
+}
+
+export interface SeatPlan {
+  screen: ScreenNumber;
+  cols: number;
+  rows: SeatPlanRow[];
+}
+
 export interface TicketType {
   id: string;
   name: string;  // "Adult", "Child", "Senior", "Meerkat", "Comp" etc.

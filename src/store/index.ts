@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
 import { format, startOfWeek, addWeeks, subWeeks } from 'date-fns';
-import type { Film, Show, ScreenNumber, FilmTerms, SpecialScreening, TicketType, PriceCard } from '../types';
+import type { Film, Show, ScreenNumber, FilmTerms, SpecialScreening, TicketType, PriceCard, SeatPlan } from '../types';
 import { nextColor } from '../utils/colors';
 import { buildSchedule, fillAdditionalScreens } from '../utils/scheduler';
 
@@ -20,6 +20,7 @@ interface State {
   ticketTypes: TicketType[];
   priceCards: PriceCard[];
   screenCapacities: Record<ScreenNumber, number>;
+  seatPlans: Record<ScreenNumber, SeatPlan>;
   ticketCounts: Record<string, number>;
   ticketBreakdown: Record<string, Record<string, number>>;
 
@@ -57,6 +58,7 @@ interface State {
   removePriceCard: (id: string) => void;
 
   setScreenCapacity: (screen: ScreenNumber, capacity: number) => void;
+  setSeatPlan: (screen: ScreenNumber, plan: SeatPlan) => void;
   setTicketSalesData: (counts: Record<string, number>, breakdown: Record<string, Record<string, number>>) => void;
 
   autoSchedule: () => void;
@@ -83,6 +85,11 @@ export const useStore = create<State>()(
       ticketTypes: [],
       priceCards: [],
       screenCapacities: { 1: 0, 2: 0, 3: 0 },
+      seatPlans: {
+        1: { screen: 1, cols: 12, rows: [] },
+        2: { screen: 2, cols: 12, rows: [] },
+        3: { screen: 3, cols: 12, rows: [] },
+      },
       ticketCounts: {},
       ticketBreakdown: {},
 
@@ -234,6 +241,11 @@ export const useStore = create<State>()(
           screenCapacities: { ...s.screenCapacities, [screen]: Math.max(0, capacity) },
         })),
 
+      setSeatPlan: (screen, plan) =>
+        set((s) => ({
+          seatPlans: { ...s.seatPlans, [screen]: plan },
+        })),
+
       setTicketSalesData: (counts, breakdown) =>
         set({ ticketCounts: counts, ticketBreakdown: breakdown }),
 
@@ -275,6 +287,7 @@ export const useStore = create<State>()(
         ticketTypes: s.ticketTypes,
         priceCards: s.priceCards,
         screenCapacities: s.screenCapacities,
+        seatPlans: s.seatPlans,
       }),
     }
   )

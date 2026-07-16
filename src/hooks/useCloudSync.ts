@@ -15,6 +15,7 @@ function extractPayload(state: ReturnType<typeof useStore.getState>) {
     ticketTypes: state.ticketTypes,
     priceCards: state.priceCards,
     screenCapacities: state.screenCapacities,
+    seatPlans: state.seatPlans,
   };
 }
 

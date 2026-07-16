@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo } from 'react';
 import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock, CreditCard, MonitorSpeaker } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock, CreditCard, MonitorSpeaker, LayoutGrid } from 'lucide-react';
 import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
@@ -8,6 +8,7 @@ import { ShowDetailModal } from './ShowDetailModal';
 import { OpenSessionsModal } from '../modals/OpenSessionsModal';
 import { PriceCardModal } from '../modals/PriceCardModal';
 import { ScreenCapacityModal } from '../modals/ScreenCapacityModal';
+import { SeatPlanModal } from '../modals/SeatPlanModal';
 
 const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
@@ -52,6 +53,7 @@ export function Timeline() {
   const [openSessionsModal, setOpenSessionsModal] = useState(false);
   const [priceCardModal, setPriceCardModal] = useState(false);
   const [screenCapacityModal, setScreenCapacityModal] = useState(false);
+  const [seatPlanModal, setSeatPlanModal] = useState(false);
 
   // All show IDs in the current week (for "open all")
   const weekShowIds = useMemo(() => {
@@ -234,6 +236,13 @@ export function Timeline() {
           <MonitorSpeaker size={13} />
           Screens
         </button>
+        <button
+          onClick={() => setSeatPlanModal(true)}
+          className="flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs rounded py-1.5 px-3 transition-colors"
+        >
+          <LayoutGrid size={13} />
+          Seat Plan
+        </button>
         {selectedShowIds.length > 0 && (
           <span className="text-gray-400 text-xs ml-auto">
             {selectedShowIds.length} show{selectedShowIds.length !== 1 ? 's' : ''} selected
@@ -254,6 +263,10 @@ export function Timeline() {
 
       {screenCapacityModal && (
         <ScreenCapacityModal onClose={() => setScreenCapacityModal(false)} />
+      )}
+
+      {seatPlanModal && (
+        <SeatPlanModal onClose={() => setSeatPlanModal(false)} />
       )}
 
       {openSessionsModal && (
