@@ -8,5 +8,5 @@ export const SCREENING_TYPES: Record<
   'cine-circle':  { label: 'Louth Cine Circle', short: 'CC', color: '#6D28D9' },
   'toddlervision':{ label: 'Toddlervision',     short: 'TV', color: '#047857' },
   'penguins':     { label: 'Penguins',          short: 'P',  color: '#1D4ED8' },
-  'senior':       { label: 'Senior Screening',  short: 'SR', color: '#B45309' },
+  'senior':       { label: 'Senior Screen Film', short: 'SR', color: '#B45309' },
 };
