@@ -5,7 +5,7 @@ import type { ScreenNumber, SeatPlan, SeatCellType, SeatPlanRow } from '../../ty
 
 const SCREEN_NUMS: ScreenNumber[] = [1, 2, 3];
 
-const CELL_CYCLE: SeatCellType[] = ['gap', 'standard', 'dda', 'unavailable'];
+const CELL_CYCLE: SeatCellType[] = ['gap', 'standard', 'dda', 'companion', 'unavailable'];
 
 function nextType(t: SeatCellType): SeatCellType {
   return CELL_CYCLE[(CELL_CYCLE.indexOf(t) + 1) % CELL_CYCLE.length];
@@ -28,7 +28,7 @@ function nextRowLabel(rows: SeatPlanRow[]): string {
 
 function countSellable(plan: SeatPlan): number {
   return plan.rows.reduce(
-    (n, row) => n + row.cells.filter((c) => c === 'standard' || c === 'dda').length,
+    (n, row) => n + row.cells.filter((c) => c === 'standard' || c === 'dda' || c === 'companion').length,
     0
   );
 }
@@ -37,11 +37,12 @@ const CELL_CLASS: Record<SeatCellType, string> = {
   gap:         'border border-dashed border-gray-700 bg-transparent hover:border-gray-500',
   standard:    'bg-blue-600 hover:bg-blue-500 border border-blue-500',
   dda:         'bg-teal-600 hover:bg-teal-500 border border-teal-500',
+  companion:   'bg-amber-600 hover:bg-amber-500 border border-amber-500',
   unavailable: 'bg-gray-700 hover:bg-gray-600 border border-gray-600',
 };
 
 const CELL_LABEL: Record<SeatCellType, string> = {
-  gap: '', standard: '', dda: '♿', unavailable: '✕',
+  gap: '', standard: '', dda: '♿', companion: 'C', unavailable: '✕',
 };
 
 // ─── Editor ──────────────────────────────────────────────────────────────────
@@ -184,6 +185,10 @@ function PlanEditor({ plan, onChange }: { plan: SeatPlan; onChange: (p: SeatPlan
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-4 rounded-sm bg-teal-600 border border-teal-500 flex items-center justify-center text-white" style={{ fontSize: 8 }}>♿</div>
           <span className="text-gray-500 text-xs">DDA</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-4 rounded-sm bg-amber-600 border border-amber-500 flex items-center justify-center text-white font-bold" style={{ fontSize: 8 }}>C</div>
+          <span className="text-gray-500 text-xs">Companion</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-4 rounded-sm bg-gray-700 border border-gray-600 flex items-center justify-center text-white" style={{ fontSize: 8 }}>✕</div>

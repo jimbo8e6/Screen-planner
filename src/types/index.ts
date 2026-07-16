@@ -61,7 +61,7 @@ export interface ScheduleState {
   selectedDay: number;
 }
 
-export type SeatCellType = 'gap' | 'standard' | 'dda' | 'unavailable';
+export type SeatCellType = 'gap' | 'standard' | 'dda' | 'companion' | 'unavailable';
 
 export interface SeatPlanRow {
   label: string;
