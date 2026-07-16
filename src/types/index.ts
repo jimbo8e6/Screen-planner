@@ -36,6 +36,7 @@ export interface Film {
   isSeniorFilm: boolean;
   isArchived?: boolean;
   specialScreening?: SpecialScreening;
+  attributes?: ScreeningType[];
 }
 
 export interface Show {

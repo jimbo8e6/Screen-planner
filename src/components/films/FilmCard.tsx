@@ -18,10 +18,19 @@ export function FilmCard({ film, collapsed = false }: Props) {
   const archiveFilm = useStore((s) => s.archiveFilm);
   const updateFilmTerms = useStore((s) => s.updateFilmTerms);
   const setSpecialScreening = useStore((s) => s.setSpecialScreening);
+  const setFilmAttributes = useStore((s) => s.setFilmAttributes);
   const { startDrag } = useDragContext();
   const [expanded, setExpanded] = useState(false);
 
   const ss = film.specialScreening;
+  const attrs = film.attributes ?? [];
+
+  const toggleAttribute = (type: ScreeningType) => {
+    const next = attrs.includes(type)
+      ? attrs.filter((a) => a !== type)
+      : [...attrs, type];
+    setFilmAttributes(film.id, next);
+  };
 
   const setTermType = (type: FilmTermType) => {
     const terms: FilmTerms = { ...film.terms, type };
@@ -155,6 +164,15 @@ export function FilmCard({ film, collapsed = false }: Props) {
                 {ss.time !== undefined ? ` · ${minutesToTimeString(ss.time)}` : ' · auto'}
               </span>
             )}
+            {attrs.map((a) => (
+              <span
+                key={a}
+                className="inline-block px-1.5 py-0.5 rounded text-xs font-medium"
+                style={{ backgroundColor: SCREENING_TYPES[a].color + 'cc', color: '#fff' }}
+              >
+                {SCREENING_TYPES[a].short}
+              </span>
+            ))}
           </div>
         </div>
         <div className="flex flex-col gap-1 flex-shrink-0">
@@ -232,6 +250,31 @@ export function FilmCard({ film, collapsed = false }: Props) {
               </div>
             </div>
           )}
+
+          {/* Attributes */}
+          <div>
+            <p className="text-gray-400 text-xs mb-1 font-medium">Attributes</p>
+            <p className="text-gray-600 text-xs mb-1.5">Tag the types of screening this film has this week. Mark individual shows with the type in session properties.</p>
+            <div className="grid grid-cols-2 gap-1">
+              {(Object.keys(SCREENING_TYPES) as ScreeningType[]).map((type) => {
+                const meta = SCREENING_TYPES[type];
+                const active = attrs.includes(type);
+                return (
+                  <button
+                    key={type}
+                    onClick={() => toggleAttribute(type)}
+                    className="text-xs py-1 px-2 rounded transition-colors text-left"
+                    style={{
+                      backgroundColor: active ? meta.color : '#374151',
+                      color: active ? '#fff' : '#9CA3AF',
+                    }}
+                  >
+                    {meta.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Special screening */}
           <div>

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
 import { format, startOfWeek, addWeeks, subWeeks } from 'date-fns';
-import type { Film, Show, ScreenNumber, FilmTerms, SpecialScreening, TicketType, PriceCard, SeatPlan } from '../types';
+import type { Film, Show, ScreenNumber, FilmTerms, SpecialScreening, ScreeningType, TicketType, PriceCard, SeatPlan } from '../types';
 import { nextColor } from '../utils/colors';
 import { buildSchedule, fillAdditionalScreens } from '../utils/scheduler';
 
@@ -41,13 +41,14 @@ interface State {
   updateFilmTerms: (id: string, terms: FilmTerms) => void;
   toggleSeniorFilm: (id: string) => void;
   setSpecialScreening: (id: string, screening: SpecialScreening | undefined) => void;
+  setFilmAttributes: (id: string, attrs: ScreeningType[]) => void;
 
   addFixedShow: (show: Omit<Show, 'id'>) => void;
   removeShow: (id: string) => void;
   moveShow: (id: string, screen: ScreenNumber, startMinute: number) => void;
   openSessions: (showIds: string[]) => void;
   closeSession: (showId: string) => void;
-  updateShowProperties: (showId: string, props: { ticketsSold?: number; priceCard?: string }) => void;
+  updateShowProperties: (showId: string, props: { ticketsSold?: number; priceCard?: string; screeningType?: ScreeningType | null }) => void;
 
   addTicketType: (name: string, price: number) => void;
   updateTicketType: (id: string, name: string, price: number) => void;
@@ -161,6 +162,13 @@ export const useStore = create<State>()(
           ),
         })),
 
+      setFilmAttributes: (id, attrs) =>
+        set((s) => ({
+          films: s.films.map((f) =>
+            f.id === id ? { ...f, attributes: attrs } : f
+          ),
+        })),
+
       addFixedShow: (showData) => {
         const show: Show = { ...showData, id: nanoid() };
         set((s) => ({ shows: [...s.shows, show] }));
@@ -190,11 +198,15 @@ export const useStore = create<State>()(
           ),
         })),
 
-      updateShowProperties: (showId, props) =>
+      updateShowProperties: (showId, { screeningType, ...rest }) =>
         set((s) => ({
-          shows: s.shows.map((sh) =>
-            sh.id === showId ? { ...sh, ...props } : sh
-          ),
+          shows: s.shows.map((sh) => {
+            if (sh.id !== showId) return sh;
+            const updated = { ...sh, ...rest };
+            if (screeningType === null) delete updated.screeningType;
+            else if (screeningType !== undefined) updated.screeningType = screeningType;
+            return updated;
+          }),
         })),
 
       addTicketType: (name, price) =>

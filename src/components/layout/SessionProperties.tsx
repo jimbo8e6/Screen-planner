@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { useStore } from '../../store';
 import { minutesToTimeString } from '../../utils/time';
+import { SCREENING_TYPES } from '../../utils/screeningTypes';
+import type { ScreeningType } from '../../types';
 
 const SCREEN_LABELS: Record<number, string> = {
   1: 'Screen 1',
@@ -61,6 +63,14 @@ export function SessionProperties() {
     updateShowProperties(show.id, { priceCard: value || undefined });
   };
 
+  const handleShowTypeChange = (value: string) => {
+    updateShowProperties(show.id, {
+      screeningType: value ? (value as ScreeningType) : null,
+    });
+  };
+
+  const filmAttributes = film.attributes ?? [];
+
   const totalSold = ticketCounts[show.id] ?? 0;
   const breakdown = ticketBreakdown[show.id] ?? {};
   const capacity = screenCapacities[show.screen];
@@ -92,6 +102,28 @@ export function SessionProperties() {
         >
           <option value="closed">Closed</option>
           <option value="open">Open</option>
+        </select>
+      </div>
+
+      {/* Show type */}
+      <div className="space-y-1">
+        <label className="text-gray-400 text-xs font-medium uppercase tracking-wide">
+          Show Type
+        </label>
+        {filmAttributes.length > 0 && (
+          <p className="text-gray-600 text-xs">
+            Film attributes: {filmAttributes.map((a) => SCREENING_TYPES[a].label).join(', ')}
+          </p>
+        )}
+        <select
+          value={show.screeningType ?? ''}
+          onChange={(e) => handleShowTypeChange(e.target.value)}
+          className="w-full bg-gray-800 text-white text-sm rounded-lg px-3 py-2 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        >
+          <option value="">Standard</option>
+          {(Object.keys(SCREENING_TYPES) as ScreeningType[]).map((type) => (
+            <option key={type} value={type}>{SCREENING_TYPES[type].label}</option>
+          ))}
         </select>
       </div>
 
