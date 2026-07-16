@@ -20,10 +20,14 @@ function blankRow(cols: number, label: string): SeatPlanRow {
 }
 
 function nextRowLabel(rows: SeatPlanRow[]): string {
-  if (rows.length === 0) return 'A';
-  const last = rows[rows.length - 1].label;
-  const code = last.charCodeAt(last.length - 1);
-  return String.fromCharCode(code + 1);
+  const lastLabelled = [...rows].reverse().find((r) => r.label.trim() !== '');
+  if (!lastLabelled) return 'A';
+  const last = lastLabelled.label.trim();
+  return String.fromCharCode(last.charCodeAt(last.length - 1) + 1);
+}
+
+function isWalkway(row: SeatPlanRow): boolean {
+  return row.cells.every((c) => c === 'gap');
 }
 
 function countSellable(plan: SeatPlan): number {
@@ -113,37 +117,47 @@ function PlanEditor({ plan, onChange }: { plan: SeatPlan; onChange: (p: SeatPlan
       {/* Grid — horizontally scrollable for wide plans */}
       <div className="overflow-x-auto pb-1">
         <div className="inline-block">
-          {plan.rows.map((row, ri) => (
-            <div key={ri} className="flex items-center gap-1 mb-1">
-              <input
-                type="text"
-                value={row.label}
-                onChange={(e) => updateLabel(ri, e.target.value)}
-                maxLength={2}
-                className="w-7 shrink-0 bg-transparent text-gray-400 text-xs text-center focus:outline-none focus:text-white"
-              />
-              <div className="flex gap-0.5">
-                {row.cells.map((cell, ci) => (
-                  <button
-                    key={ci}
-                    onClick={() => cycleCell(ri, ci)}
-                    title={cell}
-                    className={`w-6 h-6 rounded-sm flex items-center justify-center text-white transition-colors cursor-pointer ${CELL_CLASS[cell]}`}
-                    style={{ fontSize: 8 }}
-                  >
-                    {CELL_LABEL[cell]}
-                  </button>
-                ))}
+          {plan.rows.map((row, ri) => {
+            const walkway = isWalkway(row);
+            return (
+              <div key={ri} className={`flex items-center gap-1 mb-1 ${walkway ? 'opacity-50' : ''}`}>
+                <input
+                  type="text"
+                  value={row.label}
+                  onChange={(e) => updateLabel(ri, e.target.value)}
+                  maxLength={3}
+                  placeholder="—"
+                  title="Row label — clear to mark as walkway"
+                  className="w-8 shrink-0 bg-transparent text-gray-400 text-xs text-center focus:outline-none focus:text-white placeholder-gray-700 border-b border-transparent focus:border-gray-600"
+                />
+                <div className="flex gap-0.5 relative">
+                  {row.cells.map((cell, ci) => (
+                    <button
+                      key={ci}
+                      onClick={() => cycleCell(ri, ci)}
+                      title={cell}
+                      className={`w-6 h-6 rounded-sm flex items-center justify-center text-white transition-colors cursor-pointer ${CELL_CLASS[cell]}`}
+                      style={{ fontSize: 8 }}
+                    >
+                      {CELL_LABEL[cell]}
+                    </button>
+                  ))}
+                  {walkway && (
+                    <span className="absolute inset-0 flex items-center justify-center text-gray-600 text-xs pointer-events-none">
+                      walkway
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => removeRow(ri)}
+                  className="text-gray-600 hover:text-red-400 transition-colors ml-1 shrink-0"
+                  title="Remove row"
+                >
+                  <Trash2 size={11} />
+                </button>
               </div>
-              <button
-                onClick={() => removeRow(ri)}
-                className="text-gray-600 hover:text-red-400 transition-colors ml-1 shrink-0"
-                title="Remove row"
-              >
-                <Trash2 size={11} />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
