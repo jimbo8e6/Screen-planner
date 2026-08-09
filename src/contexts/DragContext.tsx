@@ -80,7 +80,7 @@ export function DragProvider({ children }: { children: React.ReactNode }) {
           const snapped = Math.round(raw / 5) * 5;
           const it = dragRef.current.item;
           const minute = it.type === 'show'
-            ? Math.max(t.timelineStart, snapped - it.offsetMinutes)
+            ? Math.round(Math.max(t.timelineStart, snapped - it.offsetMinutes) / 5) * 5
             : snapped;
           setActiveTarget({ screen: t.screen, date: t.date, minute });
         } else {
@@ -101,7 +101,8 @@ export function DragProvider({ children }: { children: React.ReactNode }) {
             const { item: it } = dragRef.current;
 
             if (it.type === 'show') {
-              moveShow(it.showId, t.screen, Math.max(t.timelineStart, minute - it.offsetMinutes));
+              const startMinute = Math.round(Math.max(t.timelineStart, minute - it.offsetMinutes) / 5) * 5;
+              moveShow(it.showId, t.screen, startMinute);
             } else {
               addFixedShow({
                 filmId: it.filmId,
