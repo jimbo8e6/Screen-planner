@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown, Cloud, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown, Cloud, ChevronsDownUp, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStore } from '../../store';
 import { FilmCard } from '../films/FilmCard';
 import { FilmSearch } from '../films/FilmSearch';
@@ -77,6 +77,9 @@ export function Sidebar({ switchToCode }: SidebarProps) {
   const [sortKey, setSortKey] = useState<SortKey>('added');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+  );
 
   // Auto-switch to Properties tab when a show gets focused
   useEffect(() => {
@@ -96,14 +99,34 @@ export function Sidebar({ switchToCode }: SidebarProps) {
   const films = useMemo(() => sortFilms(baseFilms, sortKey), [baseFilms, sortKey]);
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-gray-900 border-r border-gray-700 flex flex-col h-full overflow-hidden">
+    <aside
+      className="flex-shrink-0 bg-gray-900 border-r border-gray-700 flex flex-col h-full overflow-hidden"
+      style={{ width: sidebarOpen ? 256 : 40, transition: 'width 200ms ease-in-out' }}
+    >
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="h-full w-full flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          title="Open sidebar"
+        >
+          <ChevronRight size={18} />
+        </button>
+      )}
+      {sidebarOpen && <>
       {/* Header */}
       <div className="px-3 py-3 border-b border-gray-700">
         <div className="flex items-center gap-2">
-          <FilmIcon size={16} className="text-blue-400" />
-          <h1 className="text-white font-bold text-sm tracking-wide">
+          <FilmIcon size={16} className="text-blue-400 flex-shrink-0" />
+          <h1 className="text-white font-bold text-sm tracking-wide flex-1 min-w-0">
             Cinema Scheduler
           </h1>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-gray-500 hover:text-white transition-colors p-0.5 flex-shrink-0"
+            title="Collapse sidebar"
+          >
+            <ChevronLeft size={16} />
+          </button>
         </div>
         <p className="text-gray-500 text-xs mt-0.5">3-screen programme planner</p>
       </div>
@@ -289,6 +312,7 @@ export function Sidebar({ switchToCode }: SidebarProps) {
           switchToCode={switchToCode}
         />
       )}
+      </>}
     </aside>
   );
 }

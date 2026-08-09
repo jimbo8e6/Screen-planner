@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { format, addDays } from 'date-fns';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useStore } from '../../store';
 import { minutesToTimeString, showDurationMinutes } from '../../utils/time';
 import { SCREENING_TYPES } from '../../utils/screeningTypes';
@@ -29,136 +31,155 @@ export function WeekOverview() {
   const setSelectedDay = useStore((s) => s.setSelectedDay);
   const colorMode = useStore((s) => s.colorMode);
 
+  const [expanded, setExpanded] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+  );
+
   const totalShows = shows.length;
 
   return (
-    <div className="bg-gray-900 border-t border-gray-700 p-3">
-      <div className="flex items-center justify-between mb-2">
+    <div className="bg-gray-900 border-t border-gray-700">
+      {/* Header strip — always visible */}
+      <div className="flex items-center justify-between px-3 py-2">
         <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">
           Week overview
         </p>
-        <p className="text-gray-500 text-xs">{totalShows} shows scheduled</p>
+        <div className="flex items-center gap-3">
+          <p className="text-gray-500 text-xs">{totalShows} shows scheduled</p>
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="text-gray-500 hover:text-white transition-colors"
+            title={expanded ? 'Collapse overview' : 'Expand overview'}
+          >
+            {expanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1">
-        {DAY_NAMES.map((day, dayIdx) => {
-          const date = format(addDays(new Date(weekStart), dayIdx), 'yyyy-MM-dd');
-          const dayShows = shows.filter((s) => s.date === date);
-          const isSelected = dayIdx === selectedDay;
+      {/* Collapsible content */}
+      {expanded && (
+        <div className="px-3 pb-3">
+          <div className="grid grid-cols-7 gap-1">
+            {DAY_NAMES.map((day, dayIdx) => {
+              const date = format(addDays(new Date(weekStart), dayIdx), 'yyyy-MM-dd');
+              const dayShows = shows.filter((s) => s.date === date);
+              const isSelected = dayIdx === selectedDay;
 
-          return (
-            <button
-              key={day}
-              onClick={() => setSelectedDay(dayIdx)}
-              className={`rounded overflow-hidden border transition-colors ${
-                isSelected
-                  ? 'border-blue-500'
-                  : 'border-gray-700 hover:border-gray-500'
-              }`}
-            >
-              {/* Day header */}
-              <div
-                className={`py-0.5 px-1 text-center text-xs font-medium ${
-                  isSelected ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
-                }`}
-              >
-                {day}
-              </div>
-
-              {/* Mini tracks */}
-              <div className="bg-gray-800/50 p-0.5 space-y-0.5">
-                {SCREENS.map((screen) => {
-                  const screenShows = dayShows.filter((s) => s.screen === screen);
-                  return (
-                    <div
-                      key={screen}
-                      className="relative h-3 bg-gray-700 rounded-sm overflow-hidden"
-                    >
-                      {screenShows.map((show) => {
-                        const film = films.find((f) => f.id === show.filmId);
-                        if (!film) return null;
-                        const left = Math.max(
-                          0,
-                          ((show.startMinute - START) / SPAN) * 100
-                        );
-                        const width = Math.min(
-                          (showDurationMinutes(film.runtime) / SPAN) * 100,
-                          100 - left
-                        );
-
-                        let color = film.color;
-                        if (colorMode === 'by-category') {
-                          const key =
-                            show.screeningType ??
-                            film.specialScreening?.type ??
-                            (show.isSenior || film.isSeniorFilm ? 'senior' : undefined);
-                          color = key ? (CATEGORY_COLORS[key] ?? CATEGORY_COLORS.standard) : CATEGORY_COLORS.standard;
-                        }
-
-                        return (
-                          <div
-                            key={show.id}
-                            className="absolute top-0 bottom-0 rounded-sm"
-                            style={{
-                              left: `${left}%`,
-                              width: `${Math.max(width, 4)}%`,
-                              backgroundColor: color,
-                              opacity: 0.85,
-                            }}
-                            title={`${film.title} ${minutesToTimeString(show.startMinute)}`}
-                          />
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="text-center text-xs text-gray-500 py-0.5">
-                {dayShows.length > 0 ? `${dayShows.length}` : '–'}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Legend */}
-      {films.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {colorMode === 'by-category' ? (
-            <>
-              <div className="flex items-center gap-1">
-                <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS.standard }} />
-                <span className="text-gray-400 text-xs">Standard</span>
-              </div>
-              {(Object.keys(SCREENING_TYPES) as ScreeningType[]).map((type) => {
-                const hasShows = shows.some((sh) => {
-                  const film = films.find((f) => f.id === sh.filmId);
-                  return (
-                    sh.screeningType === type ||
-                    film?.specialScreening?.type === type ||
-                    (type === 'senior' && (sh.isSenior || film?.isSeniorFilm))
-                  );
-                });
-                if (!hasShows) return null;
-                return (
-                  <div key={type} className="flex items-center gap-1">
-                    <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS[type] }} />
-                    <span className="text-gray-400 text-xs">{SCREENING_TYPES[type].label}</span>
+              return (
+                <button
+                  key={day}
+                  onClick={() => setSelectedDay(dayIdx)}
+                  className={`rounded overflow-hidden border transition-colors ${
+                    isSelected
+                      ? 'border-blue-500'
+                      : 'border-gray-700 hover:border-gray-500'
+                  }`}
+                >
+                  {/* Day header */}
+                  <div
+                    className={`py-0.5 px-1 text-center text-xs font-medium ${
+                      isSelected ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'
+                    }`}
+                  >
+                    {day}
                   </div>
-                );
-              })}
-            </>
-          ) : (
-            films.map((f) => (
-              <div key={f.id} className="flex items-center gap-1">
-                <div
-                  className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                  style={{ backgroundColor: f.color }}
-                />
-                <span className="text-gray-400 text-xs truncate max-w-24">{f.title}</span>
-              </div>
-            ))
+
+                  {/* Mini tracks */}
+                  <div className="bg-gray-800/50 p-0.5 space-y-0.5">
+                    {SCREENS.map((screen) => {
+                      const screenShows = dayShows.filter((s) => s.screen === screen);
+                      return (
+                        <div
+                          key={screen}
+                          className="relative h-3 bg-gray-700 rounded-sm overflow-hidden"
+                        >
+                          {screenShows.map((show) => {
+                            const film = films.find((f) => f.id === show.filmId);
+                            if (!film) return null;
+                            const left = Math.max(
+                              0,
+                              ((show.startMinute - START) / SPAN) * 100
+                            );
+                            const width = Math.min(
+                              (showDurationMinutes(film.runtime) / SPAN) * 100,
+                              100 - left
+                            );
+
+                            let color = film.color;
+                            if (colorMode === 'by-category') {
+                              const key =
+                                show.screeningType ??
+                                film.specialScreening?.type ??
+                                (show.isSenior || film.isSeniorFilm ? 'senior' : undefined);
+                              color = key ? (CATEGORY_COLORS[key] ?? CATEGORY_COLORS.standard) : CATEGORY_COLORS.standard;
+                            }
+
+                            return (
+                              <div
+                                key={show.id}
+                                className="absolute top-0 bottom-0 rounded-sm"
+                                style={{
+                                  left: `${left}%`,
+                                  width: `${Math.max(width, 4)}%`,
+                                  backgroundColor: color,
+                                  opacity: 0.85,
+                                }}
+                                title={`${film.title} ${minutesToTimeString(show.startMinute)}`}
+                              />
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="text-center text-xs text-gray-500 py-0.5">
+                    {dayShows.length > 0 ? `${dayShows.length}` : '–'}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Legend */}
+          {films.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {colorMode === 'by-category' ? (
+                <>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS.standard }} />
+                    <span className="text-gray-400 text-xs">Standard</span>
+                  </div>
+                  {(Object.keys(SCREENING_TYPES) as ScreeningType[]).map((type) => {
+                    const hasShows = shows.some((sh) => {
+                      const film = films.find((f) => f.id === sh.filmId);
+                      return (
+                        sh.screeningType === type ||
+                        film?.specialScreening?.type === type ||
+                        (type === 'senior' && (sh.isSenior || film?.isSeniorFilm))
+                      );
+                    });
+                    if (!hasShows) return null;
+                    return (
+                      <div key={type} className="flex items-center gap-1">
+                        <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: CATEGORY_COLORS[type] }} />
+                        <span className="text-gray-400 text-xs">{SCREENING_TYPES[type].label}</span>
+                      </div>
+                    );
+                  })}
+                </>
+              ) : (
+                films.map((f) => (
+                  <div key={f.id} className="flex items-center gap-1">
+                    <div
+                      className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: f.color }}
+                    />
+                    <span className="text-gray-400 text-xs truncate max-w-24">{f.title}</span>
+                  </div>
+                ))
+              )}
+            </div>
           )}
         </div>
       )}
