@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo } from 'react';
 import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock, CreditCard, MonitorSpeaker, LayoutGrid } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Palette, Layers, Unlock, CreditCard, MonitorSpeaker, LayoutGrid, Cloud } from 'lucide-react';
 import { useStore } from '../../store';
 import { TimeAxis } from './TimeAxis';
 import { ScreenTrack } from './ScreenTrack';
@@ -9,6 +9,8 @@ import { OpenSessionsModal } from '../modals/OpenSessionsModal';
 import { PriceCardModal } from '../modals/PriceCardModal';
 import { ScreenCapacityModal } from '../modals/ScreenCapacityModal';
 import { SeatPlanModal } from '../modals/SeatPlanModal';
+import { SyncModal } from '../modals/SyncModal';
+import { supabase } from '../../lib/supabase';
 
 const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 
@@ -16,7 +18,11 @@ const DAY_NAMES = ['Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 const TIMELINE_START = 10 * 60; // 600
 const TIMELINE_END = 24 * 60; // 1440
 
-export function Timeline() {
+interface TimelineProps {
+  switchToCode: (code: string) => Promise<void>;
+}
+
+export function Timeline({ switchToCode }: TimelineProps) {
   const weekStart = useStore((s) => s.weekStart);
   const selectedDay = useStore((s) => s.selectedDay);
   const zoom = useStore((s) => s.zoom);
@@ -29,6 +35,7 @@ export function Timeline() {
   const setColorMode = useStore((s) => s.setColorMode);
   const openSessions = useStore((s) => s.openSessions);
   const setFocusedShowId = useStore((s) => s.setFocusedShowId);
+  const syncStatus = useStore((s) => s.syncStatus);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [detailShowId, setDetailShowId] = useState<string | null>(null);
@@ -54,6 +61,7 @@ export function Timeline() {
   const [priceCardModal, setPriceCardModal] = useState(false);
   const [screenCapacityModal, setScreenCapacityModal] = useState(false);
   const [seatPlanModal, setSeatPlanModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
 
   // All show IDs in the current week (for "open all")
   const weekShowIds = useMemo(() => {
@@ -243,6 +251,21 @@ export function Timeline() {
           <LayoutGrid size={13} />
           Seat Plan
         </button>
+        {supabase && (
+          <button
+            onClick={() => setShowSyncModal(true)}
+            className="md:hidden flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs rounded py-1.5 px-3 transition-colors"
+          >
+            <Cloud size={13} />
+            Sync
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+              syncStatus === 'synced'  ? 'bg-green-400' :
+              syncStatus === 'syncing' ? 'bg-yellow-400 animate-pulse' :
+              syncStatus === 'error'   ? 'bg-red-400' :
+                                         'bg-gray-500'
+            }`} />
+          </button>
+        )}
         {selectedShowIds.length > 0 && (
           <span className="text-gray-400 text-xs ml-auto">
             {selectedShowIds.length} show{selectedShowIds.length !== 1 ? 's' : ''} selected
@@ -267,6 +290,13 @@ export function Timeline() {
 
       {seatPlanModal && (
         <SeatPlanModal onClose={() => setSeatPlanModal(false)} />
+      )}
+
+      {showSyncModal && (
+        <SyncModal
+          onClose={() => setShowSyncModal(false)}
+          switchToCode={switchToCode}
+        />
       )}
 
       {openSessionsModal && (
