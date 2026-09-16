@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown, Cloud, ChevronsDownUp, ChevronsUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Wand2, Trash2, Calendar, Key, Film as FilmIcon, Clapperboard, FileDown, ArrowUpDown, Cloud, ChevronsDownUp, ChevronsUpDown, ChevronLeft, ChevronRight, Archive } from 'lucide-react';
 import { useStore } from '../../store';
 import { FilmCard } from '../films/FilmCard';
 import { FilmSearch } from '../films/FilmSearch';
@@ -8,12 +8,12 @@ import { RegularShowModal } from '../modals/RegularShowModal';
 import { ApiKeyModal } from '../modals/ApiKeyModal';
 import { SyncModal } from '../modals/SyncModal';
 import { SessionProperties } from './SessionProperties';
-import { FilmArchive } from '../films/FilmArchive';
+import { FilmArchiveModal } from '../modals/FilmArchiveModal';
 import { exportSchedulePdf } from '../../utils/exportPdf';
 import { supabase } from '../../lib/supabase';
 import type { Film } from '../../types';
 
-type SidebarTab = 'films' | 'properties' | 'archive';
+type SidebarTab = 'films' | 'properties';
 
 // These preset IDs must stay hidden from the main films list
 const PRESET_IDS = new Set([
@@ -74,6 +74,7 @@ export function Sidebar({ switchToCode }: SidebarProps) {
   const [showRegularModal, setShowRegularModal] = useState(false);
   const [showApiModal, setShowApiModal] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('added');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -176,7 +177,7 @@ export function Sidebar({ switchToCode }: SidebarProps) {
 
       {/* Tabs */}
       <div className="flex border-b border-gray-700 flex-shrink-0">
-        {(['films', 'properties', 'archive'] as SidebarTab[]).map((tab) => (
+        {(['films', 'properties'] as SidebarTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -186,12 +187,7 @@ export function Sidebar({ switchToCode }: SidebarProps) {
                 : 'text-gray-400 border-transparent hover:text-white'
             }`}
           >
-            {tab === 'films' ? 'Films' : tab === 'properties' ? 'Properties' : 'Archive'}
-            {tab === 'archive' && archivedCount > 0 && (
-              <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-600 text-gray-300 text-xs leading-none">
-                {archivedCount}
-              </span>
-            )}
+            {tab === 'films' ? 'Films' : 'Properties'}
           </button>
         ))}
       </div>
@@ -260,13 +256,20 @@ export function Sidebar({ switchToCode }: SidebarProps) {
         <SessionProperties />
       </div>
 
-      {/* Archive tab */}
-      <div className={`flex-1 min-h-0 flex flex-col ${activeTab !== 'archive' ? 'hidden' : ''}`}>
-        <FilmArchive />
-      </div>
-
       {/* Footer */}
       <div className="px-3 py-2 border-t border-gray-700 space-y-1">
+        <button
+          onClick={() => setShowArchiveModal(true)}
+          className="w-full flex items-center gap-2 text-gray-400 hover:text-white text-xs py-1.5 transition-colors"
+        >
+          <Archive size={12} />
+          <span className="flex-1 text-left">Film Archive</span>
+          {archivedCount > 0 && (
+            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-700 text-gray-300 text-xs leading-none">
+              {archivedCount}
+            </span>
+          )}
+        </button>
         {supabase && (
           <button
             onClick={() => setShowSyncModal(true)}
@@ -311,6 +314,9 @@ export function Sidebar({ switchToCode }: SidebarProps) {
           onClose={() => setShowSyncModal(false)}
           switchToCode={switchToCode}
         />
+      )}
+      {showArchiveModal && (
+        <FilmArchiveModal onClose={() => setShowArchiveModal(false)} />
       )}
       </>}
     </aside>
