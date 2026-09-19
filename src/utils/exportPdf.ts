@@ -86,8 +86,10 @@ export function exportSessionsReport(
   // Table
   const DAY_LABELS = ['Fri', 'Sat', 'Sun', 'Mon', 'Tues', 'Wed', 'Thurs'];
 
+  const weekShows = shows.filter((s) => dayDates.includes(s.date));
+
   const activeFilms = films
-    .filter((f) => !f.isArchived && shows.some((s) => s.filmId === f.id))
+    .filter((f) => !f.isArchived && weekShows.some((s) => s.filmId === f.id))
     .sort((a, b) => a.title.localeCompare(b.title));
 
   const head = [[
@@ -101,7 +103,7 @@ export function exportSessionsReport(
       styles: { fontStyle: 'bold' as const },
     },
     ...dayDates.map((date) => {
-      const dayShows = shows
+      const dayShows = weekShows
         .filter((s) => s.filmId === film.id && s.date === date)
         .sort((a, b) => a.startMinute - b.startMinute);
 
@@ -109,7 +111,7 @@ export function exportSessionsReport(
 
       const lines = dayShows.map((s) => {
         const end = s.startMinute + showDurationMinutes(film.runtime);
-        return `${minutesToTimeString(s.startMinute)}-${minutesToTimeString(end)}\n${SCREEN_FULL[s.screen]}`;
+        return `${minutesToTimeString(s.startMinute)}-${minutesToTimeString(end)}\n${SCREEN_FULL[s.screen as ScreenNumber]}`;
       });
 
       return { content: lines.join('\n') };
