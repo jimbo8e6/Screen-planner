@@ -42,6 +42,12 @@ interface State {
   toggleSeniorFilm: (id: string) => void;
   setSpecialScreening: (id: string, screening: SpecialScreening | undefined) => void;
   setFilmAttributes: (id: string, attrs: ScreeningType[]) => void;
+  setFilmCertificate: (id: string, cert: string) => void;
+
+  cinemaName: string;
+  cinemaAddress: string;
+  setCinemaName: (name: string) => void;
+  setCinemaAddress: (addr: string) => void;
 
   addFixedShow: (show: Omit<Show, 'id'>) => void;
   removeShow: (id: string) => void;
@@ -93,6 +99,8 @@ export const useStore = create<State>()(
       },
       ticketCounts: {},
       ticketBreakdown: {},
+      cinemaName: '',
+      cinemaAddress: '',
 
       setTmdbApiKey: (key) => {
         // Persist API key under a stable key so it survives store version resets
@@ -168,6 +176,16 @@ export const useStore = create<State>()(
             f.id === id ? { ...f, attributes: attrs } : f
           ),
         })),
+
+      setFilmCertificate: (id, cert) =>
+        set((s) => ({
+          films: s.films.map((f) =>
+            f.id === id ? { ...f, certificate: cert } : f
+          ),
+        })),
+
+      setCinemaName: (name) => set({ cinemaName: name }),
+      setCinemaAddress: (addr) => set({ cinemaAddress: addr }),
 
       addFixedShow: (showData) => {
         const show: Show = { ...showData, id: nanoid() };

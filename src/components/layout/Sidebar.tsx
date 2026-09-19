@@ -9,6 +9,7 @@ import { ApiKeyModal } from '../modals/ApiKeyModal';
 import { SyncModal } from '../modals/SyncModal';
 import { SessionProperties } from './SessionProperties';
 import { FilmArchiveModal } from '../modals/FilmArchiveModal';
+import { SessionsReportModal } from '../modals/SessionsReportModal';
 import { exportSchedulePdf } from '../../utils/exportPdf';
 import { supabase } from '../../lib/supabase';
 import type { Film } from '../../types';
@@ -75,6 +76,7 @@ export function Sidebar({ switchToCode }: SidebarProps) {
   const [showApiModal, setShowApiModal] = useState(false);
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showSessionsReportModal, setShowSessionsReportModal] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('added');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -165,14 +167,24 @@ export function Sidebar({ switchToCode }: SidebarProps) {
           <Trash2 size={12} />
           Clear Auto-Scheduled Shows
         </button>
-        <button
-          onClick={() => exportSchedulePdf(weekStart, allFilms, shows)}
-          disabled={shows.length === 0}
-          className="w-full flex items-center gap-1.5 justify-center bg-green-700/80 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs rounded py-1.5 px-2 transition-colors"
-        >
-          <FileDown size={12} />
-          Export / Share PDF
-        </button>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => exportSchedulePdf(weekStart, allFilms, shows)}
+            disabled={shows.length === 0}
+            className="flex-1 flex items-center gap-1 justify-center bg-green-700/80 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs rounded py-1.5 px-2 transition-colors"
+          >
+            <FileDown size={12} />
+            Schedule PDF
+          </button>
+          <button
+            onClick={() => setShowSessionsReportModal(true)}
+            disabled={shows.length === 0}
+            className="flex-1 flex items-center gap-1 justify-center bg-green-700/80 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs rounded py-1.5 px-2 transition-colors"
+          >
+            <FileDown size={12} />
+            Sessions PDF
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -317,6 +329,9 @@ export function Sidebar({ switchToCode }: SidebarProps) {
       )}
       {showArchiveModal && (
         <FilmArchiveModal onClose={() => setShowArchiveModal(false)} />
+      )}
+      {showSessionsReportModal && (
+        <SessionsReportModal onClose={() => setShowSessionsReportModal(false)} />
       )}
       </>}
     </aside>

@@ -19,6 +19,7 @@ export function FilmCard({ film, collapsed = false }: Props) {
   const updateFilmTerms = useStore((s) => s.updateFilmTerms);
   const setSpecialScreening = useStore((s) => s.setSpecialScreening);
   const setFilmAttributes = useStore((s) => s.setFilmAttributes);
+  const setFilmCertificate = useStore((s) => s.setFilmCertificate);
   const { startDrag } = useDragContext();
   const [expanded, setExpanded] = useState(false);
 
@@ -191,6 +192,18 @@ export function FilmCard({ film, collapsed = false }: Props) {
 
       {expanded && (
         <div className="bg-gray-800 p-2 space-y-3">
+
+          {/* Certificate */}
+          <div>
+            <p className="text-gray-400 text-xs mb-1 font-medium">Certificate</p>
+            <input
+              type="text"
+              placeholder="e.g. PG, 12A, 15, U, TBC"
+              value={film.certificate ?? ''}
+              onChange={(e) => setFilmCertificate(film.id, e.target.value)}
+              className="w-full bg-gray-700 text-white text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-600"
+            />
+          </div>
 
           {/* Screening term */}
           <div>

@@ -35,6 +35,7 @@ export interface Film {
   terms: FilmTerms;
   isSeniorFilm: boolean;
   isArchived?: boolean;
+  certificate?: string; // e.g. 'U', 'PG', '12A', '15', '18', 'TBC'
   specialScreening?: SpecialScreening;
   attributes?: ScreeningType[];
 }
