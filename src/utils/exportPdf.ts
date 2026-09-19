@@ -89,7 +89,7 @@ export function exportSessionsReport(
   const weekShows = shows.filter((s) => dayDates.includes(s.date));
 
   const activeFilms = films
-    .filter((f) => !f.isArchived && weekShows.some((s) => s.filmId === f.id))
+    .filter((f) => weekShows.some((s) => s.filmId === f.id))
     .sort((a, b) => a.title.localeCompare(b.title));
 
   const head = [[
